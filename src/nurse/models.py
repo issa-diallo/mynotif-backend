@@ -20,7 +20,7 @@ class Nurse(models.Model):
     address = models.CharField(max_length=300, blank=False)
     zip_code = models.CharField(max_length=5, blank=False)
     city = models.CharField(max_length=300, blank=False)
-    patients = models.ManyToManyField(Patient)
+    patients = models.ManyToManyField(Patient, blank=True)
 
 
 class Prescription(models.Model):
