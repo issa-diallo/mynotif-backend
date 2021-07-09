@@ -4,7 +4,6 @@ from django.db import models
 def make_phone_field():
     return models.CharField(max_length=30, blank=False)
 
-
 class Patient(models.Model):
     firstname = models.CharField(max_length=30, blank=False)
     lastname = models.CharField(max_length=30, blank=False)
@@ -21,6 +20,12 @@ class Nurse(models.Model):
     zip_code = models.CharField(max_length=5, blank=False)
     city = models.CharField(max_length=300, blank=False)
     patients = models.ManyToManyField(Patient, blank=True)
+
+    class Meta:
+        verbose_name = "Infirmiere"
+
+    def __str__(self):
+        return self.user
 
 
 class Prescription(models.Model):

@@ -3,7 +3,7 @@ from nurse.models import Nurse, Patient, Prescription
 
 @admin.register(Nurse)
 class NurseAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('user','city','phone','address')
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
