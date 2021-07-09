@@ -1,18 +1,22 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+def make_phone_field():
+    return models.CharField(max_length=30, blank=False)
+
+
 class Patient(models.Model):
     firstname = models.CharField(max_length=30, blank=False)
     lastname = models.CharField(max_length=30, blank=False)
     address = models.CharField(max_length=300, blank=False)
     zip_code = models.CharField(blank=False, max_length=5)
     city = models.CharField(max_length=300, blank=False)
-    phone = models.CharField(blank=False, max_length=30)
+    phone = make_phone_field()
 
 
 class Nurse(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
-    phone = models.IntegerField(blank=False)
+    phone = make_phone_field()
     address = models.CharField(max_length=300, blank=False)
     zip_code = models.CharField(max_length=5, blank=False)
     city = models.CharField(max_length=300, blank=False)
