@@ -12,6 +12,9 @@ class Patient(models.Model):
     city = models.CharField(max_length=300, blank=False)
     phone = make_phone_field()
 
+    def __str__(self):
+        return str(self.firstname)
+
 
 class Nurse(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
@@ -21,19 +24,21 @@ class Nurse(models.Model):
     city = models.CharField(max_length=300, blank=False)
     patients = models.ManyToManyField(Patient, blank=True)
 
-    class Meta:
-        verbose_name = "Infirmiere"
 
     def __str__(self):
-        return self.user
+        return str(self.user)
 
 
 class Prescription(models.Model):
-    carte_vitale = models.IntegerField()
-    caisse_rattachement = models.IntegerField()
+    carte_vitale = models.CharField(max_length=300, blank=False)
+    caisse_rattachement = models.CharField(max_length=300, blank=False)
     prescribing_doctor = models.CharField(max_length=300, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
     at_renew = models.BooleanField(blank=False)
-    photo_prescription = models.CharField(max_length=300, blank=False)
+    photo_prescription = models.CharField(max_length=300, blank=True)
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True)
+
+
+    def __str__(self):
+        return str(self.carte_vitale)
