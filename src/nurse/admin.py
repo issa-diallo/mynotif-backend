@@ -3,13 +3,18 @@ from nurse.models import Nurse, Patient, Prescription
 
 @admin.register(Nurse)
 class NurseAdmin(admin.ModelAdmin):
-    list_display = ('user','city','phone','address')
+    list_display = ('user','city','zip_code','phone','address')
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('firstname','lastname','city','zip_code','phone','address')
 
 @admin.register(Prescription)
 class PrescriptionAdmin(admin.ModelAdmin):
-    pass
-
+    list_display = (
+        'carte_vitale',
+        'caisse_rattachement',
+        'prescribing_doctor',
+        'start_date',
+        'end_date',
+        'at_renew')
