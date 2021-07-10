@@ -1,8 +1,10 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+
 def make_phone_field():
     return models.CharField(max_length=30, blank=False)
+
 
 class Patient(models.Model):
     firstname = models.CharField(max_length=30, blank=False)
@@ -24,7 +26,6 @@ class Nurse(models.Model):
     city = models.CharField(max_length=300, blank=False)
     patients = models.ManyToManyField(Patient, blank=True)
 
-
     def __str__(self):
         return str(self.user)
 
@@ -38,7 +39,6 @@ class Prescription(models.Model):
     at_renew = models.BooleanField(blank=False)
     photo_prescription = models.CharField(max_length=300, blank=True)
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True)
-
 
     def __str__(self):
         return str(self.carte_vitale)
