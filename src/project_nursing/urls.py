@@ -15,7 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.urls.conf import include
+
+from nurse.urls import router as nurse_router
+from rest_framework import routers
+
+
+router = routers.DefaultRouter()
+router.registry.extend(nurse_router.registry)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", include(router.urls)),
 ]
