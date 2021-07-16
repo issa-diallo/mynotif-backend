@@ -1,6 +1,5 @@
+from nurse.models import Patient, Prescription
 from rest_framework import serializers
-
-from .models import Patient, Prescription, make_phone_field
 
 
 class PatientSerializer(serializers.Serializer):
@@ -9,10 +8,10 @@ class PatientSerializer(serializers.Serializer):
     address = serializers.CharField(max_length=300, allow_blank=False)
     zip_code = serializers.CharField(allow_blank=False, max_length=5)
     city = serializers.CharField(max_length=300, allow_blank=False)
-    phone = make_phone_field()
+    phone = serializers.CharField(max_length=30, allow_blank=False)
 
     def create(self, validated_data):
-        return Patient.objects.create(validated_data)
+        return Patient.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance.firstname = validated_data.get("firstname", instance.firstname)
@@ -35,7 +34,7 @@ class PrescriptionSerializer(serializers.Serializer):
     patient = serializers.CharField(max_length=300, allow_blank=False)
 
     def create(self, validated_data):
-        return Prescription.objects.create(validated_data)
+        return Prescription.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance.carte_vitale = validated_data.get(

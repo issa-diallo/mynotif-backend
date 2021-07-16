@@ -19,6 +19,7 @@ from django.urls.conf import include
 
 from nurse.urls import router as nurse_router
 from rest_framework import routers
+from rest_framework.schemas import get_schema_view
 
 
 router = routers.DefaultRouter()
@@ -27,4 +28,9 @@ router.registry.extend(nurse_router.registry)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include(router.urls)),
+    path(
+        "openapi",
+        get_schema_view(title="Mynotif", description="API Mynotif", version="1.0.0"),
+        name="openapi-schema",
+    ),
 ]
