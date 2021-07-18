@@ -61,3 +61,23 @@ class PatientTests(APITestCase):
         response = self.client.delete(reverse_lazy("patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
+
+
+class PrescriptionTests(APITestCase):
+
+    url = reverse_lazy("prescription-list")
+
+    data = {
+        "carte_vitale": "12345678910",
+        "caisse_rattachement": "12345678910",
+        "prescribing_doctor": "Dr Leen",
+        "start_date": "2022-07-15",
+        "end_date": "2022-07-31",
+        "at_renew": 1,
+        "photo_prescription": "path_image",
+    }
+
+    def test_create_prescription(self):
+        response = self.client.post(self.url, self.data, format="json")
+        # FIXME: this needs to be addressed to handle POST properly
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
