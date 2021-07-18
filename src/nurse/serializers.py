@@ -31,7 +31,7 @@ class PrescriptionSerializer(serializers.Serializer):
     end_date = serializers.DateField()
     at_renew = serializers.BooleanField()
     photo_prescription = serializers.CharField(max_length=300, allow_blank=True)
-    patient = serializers.CharField(max_length=300, allow_blank=False)
+    patient = serializers.IntegerField()
 
     def create(self, validated_data):
         return Prescription.objects.create(**validated_data)
