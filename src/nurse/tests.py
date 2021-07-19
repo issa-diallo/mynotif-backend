@@ -34,6 +34,7 @@ class PatientTests(APITestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data == [
             {
+                "id": 1,
                 "firstname": "John",
                 "lastname": "Leen",
                 "address": "3 place du cerdan",
@@ -48,6 +49,7 @@ class PatientTests(APITestCase):
         response = self.client.get(reverse_lazy("patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {
+            "id": 1,
             "firstname": "John",
             "lastname": "Leen",
             "address": "3 place du cerdan",
