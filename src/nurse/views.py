@@ -1,5 +1,5 @@
-from nurse.models import Patient, Prescription
-from nurse.serializers import PatientSerializer, PrescriptionSerializer
+from nurse.models import Nurse, Patient, Prescription
+from nurse.serializers import NurseSerializer, PatientSerializer, PrescriptionSerializer
 from rest_framework import viewsets
 
 
@@ -11,3 +11,8 @@ class PatientViewSet(viewsets.ModelViewSet):
 class PrescriptionViewSet(viewsets.ModelViewSet):
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
+
+
+class NurseViewSet(viewsets.ModelViewSet):
+    queryset = Nurse.objects.all()
+    serializer_class = NurseSerializer
