@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "nurse",
     "rest_framework",
     "django_on_heroku",
+    "oauth2_provider",
 ]
 
 MIDDLEWARE = [
@@ -135,3 +136,12 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 django_on_heroku.settings(locals())
+LOGIN_URL = "/admin/login/"
+# OAUTH2_PROVIDER = {
+#     "OAUTH2_BACKEND_CLASS": "oauth2_provider.oauth2_backends.JSONOAuthLibCore",
+# }
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+    ]
+}

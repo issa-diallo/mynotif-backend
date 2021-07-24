@@ -33,4 +33,5 @@ urlpatterns = [
         get_schema_view(title="Mynotif", description="API Mynotif", version="1.0.0"),
         name="openapi-schema",
     ),
+    path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
 ]
