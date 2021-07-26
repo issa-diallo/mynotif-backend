@@ -3,7 +3,9 @@ asgiref==3.4.1
 attrs==21.2.0
 black==21.6b0
 click==8.0.1
+dj-database-url==0.5.0
 Django==3.2.5
+django-on-heroku==1.1.2
 djangorestframework==3.12.4
 fancycompleter==0.9.1
 flake8==3.9.2
@@ -15,6 +17,7 @@ packaging==21.0
 pathspec==0.8.1
 pdbpp==0.10.3
 pluggy==0.13.1
+psycopg2-binary==2.9.1
 py==1.10.0
 pycodestyle==2.7.0
 pyflakes==2.3.1
@@ -29,4 +32,5 @@ regex==2021.7.6
 sqlparse==0.4.1
 toml==0.10.2
 uritemplate==3.0.1
+whitenoise==5.3.0
 wmctrl==0.4
