@@ -20,6 +20,9 @@ class PatientTests(APITestCase):
         "phone": "0602015454",
     }
 
+    def test_endpoint_patient(self):
+        assert self.url == "/patient/"
+
     def test_create_patient(self):
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
@@ -85,6 +88,9 @@ class PrescriptionTests(APITestCase):
 
     my_start_date = date(2022, 7, 15)
     my_end_date = date(2022, 7, 31)
+
+    def test_endpoind_prescription(self):
+        assert self.url == "/prescription/"
 
     def test_create_prescription(self):
         response = self.client.post(self.url, self.data, format="json")
@@ -154,6 +160,9 @@ class NurseTests(APITestCase):
         "zip_code": "95300",
         "city": "Pontoise",
     }
+
+    def test_endpoind_nurse(self):
+        assert self.url == "/nurse/"
 
     def test_create_nurse(self):
         user = User.objects.create()
