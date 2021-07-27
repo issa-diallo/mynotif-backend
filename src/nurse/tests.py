@@ -3,12 +3,18 @@ from datetime import date
 from django.contrib.auth.models import User
 from django.urls.base import reverse_lazy
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient
 
 from .models import Nurse, Patient, Prescription
 
+import pytest
 
-class PatientTests(APITestCase):
+
+@pytest.mark.django_db
+class TestPatient:
+
+    client = APIClient()
+
     url = reverse_lazy("patient-list")
 
     data = {
@@ -72,7 +78,10 @@ class PatientTests(APITestCase):
         assert Patient.objects.count() == 0
 
 
-class PrescriptionTests(APITestCase):
+@pytest.mark.django_db
+class TestPrescription:
+
+    client = APIClient()
 
     url = reverse_lazy("prescription-list")
 
@@ -150,7 +159,11 @@ class PrescriptionTests(APITestCase):
         assert response.data is None
 
 
-class NurseTests(APITestCase):
+@pytest.mark.django_db
+class TestNurse:
+
+    client = APIClient()
+
     url = reverse_lazy("nurse-list")
 
     data = {
