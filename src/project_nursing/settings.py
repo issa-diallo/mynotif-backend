@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "nurse",
     "rest_framework",
     "django_on_heroku",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
