@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_on_heroku",
     "django_extensions",
+    "model_bakery",
 ]
 
 MIDDLEWARE = [
