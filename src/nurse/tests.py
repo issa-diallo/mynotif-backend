@@ -1,13 +1,38 @@
 from datetime import date
-
+import pytest
 from django.contrib.auth.models import User
 from django.urls.base import reverse_lazy
 from rest_framework import status
 from rest_framework.test import APIClient
+from model_bakery import baker
+from django.test import TestCase
+
 
 from .models import Nurse, Patient, Prescription
 
-import pytest
+
+class TestPatientModel(TestCase):
+    def test_simple(self):
+        patient = baker.make("nurse.Patient")
+        assert patient
+
+    def test_models_fields(self):
+
+        patient = baker.make(
+            "nurse.Patient",
+            firstname="issa",
+            lastname="diallo",
+            address="rue de geneve",
+            zip_code="01210",
+            city="geneve",
+            phone="0603598600",
+        )
+        assert patient.firstname == "issa"
+        assert patient.lastname == "diallo"
+        assert patient.address == "rue de geneve"
+        assert patient.zip_code == "01210"
+        assert patient.city == "geneve"
+        assert patient.phone == "0603598600"
 
 
 @pytest.mark.django_db
