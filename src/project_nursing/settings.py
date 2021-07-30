@@ -25,7 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-gmzzy_phk&y296hn9k&@st$@^4)_wz1ssaz0y0l@ck8xa=mda*"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = not bool(os.environ.get("PRODUCTION"))
+PRODUCTION = bool(os.environ.get("PRODUCTION"))
+DEBUG = not PRODUCTION
 
 ALLOWED_HOSTS = ["127.0.0.1", "mynotif-api.herokuapp.com"]
 
