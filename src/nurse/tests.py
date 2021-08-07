@@ -1,13 +1,12 @@
 from datetime import date
-
+from freezegun import freeze_time
+import pytest
 from django.contrib.auth.models import User
 from django.urls.base import reverse_lazy
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from .models import Nurse, Patient, Prescription
-
-import pytest
 
 
 @pytest.mark.django_db
@@ -238,3 +237,115 @@ class TestNurse:
             "zip_code": "95300",
             "city": "Pontoise",
         }
+
+
+@pytest.mark.django_db
+class TestUser:
+
+    client = APIClient()
+
+    url = reverse_lazy("user-list")
+
+    data = {
+        "username": "@Issa",
+        "email": "issa_test@test.com",
+        "password": "password123!@",
+    }
+
+    def test_endpoind_user(self):
+        assert self.url == "/user/"
+
+    @freeze_time("2021-08-03 07:45:25")
+    def test_create_user(self):
+        response = self.client.post(self.url, self.data, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert User.objects.count() == 1
+        assert response.data == {
+            "id": 1,
+            "password": "password123!@",
+            "last_login": None,
+            "is_superuser": False,
+            "username": "@Issa",
+            "first_name": "",
+            "last_name": "",
+            "email": "issa_test@test.com",
+            "is_staff": False,
+            "is_active": True,
+            "date_joined": "2021-08-03T07:45:25Z",
+            "groups": [],
+            "user_permissions": [],
+        }
+
+    @freeze_time("2021-08-03 07:45:25")
+    def test_list_user(self):
+        User.objects.create()
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == [
+            {
+                "id": 1,
+                "password": "",
+                "last_login": None,
+                "is_superuser": False,
+                "username": "",
+                "first_name": "",
+                "last_name": "",
+                "email": "",
+                "is_staff": False,
+                "is_active": True,
+                "date_joined": "2021-08-03T07:45:25Z",
+                "groups": [],
+                "user_permissions": [],
+            }
+        ]
+
+    @freeze_time("2021-08-03 07:45:25")
+    def test_detail_user(self):
+        User.objects.create()
+        response = self.client.get(reverse_lazy("user-detail", kwargs={"pk": 1}))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {
+            "id": 1,
+            "password": "",
+            "last_login": None,
+            "is_superuser": False,
+            "username": "",
+            "first_name": "",
+            "last_name": "",
+            "email": "",
+            "is_staff": False,
+            "is_active": True,
+            "date_joined": "2021-08-03T07:45:25Z",
+            "groups": [],
+            "user_permissions": [],
+        }
+
+    @freeze_time("2021-08-03 07:45:25")
+    def test_update_user(self):
+        User.objects.create(**self.data)
+        response = self.client.put(
+            reverse_lazy("user-detail", kwargs={"pk": 1}), self.data, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {
+            "id": 1,
+            "password": "password123!@",
+            "last_login": None,
+            "is_superuser": False,
+            "username": "@Issa",
+            "first_name": "",
+            "last_name": "",
+            "email": "issa_test@test.com",
+            "is_staff": False,
+            "is_active": True,
+            "date_joined": "2021-08-03T07:45:25Z",
+            "groups": [],
+            "user_permissions": [],
+        }
+
+    def test_delete_user(self):
+        User.objects.create(**self.data)
+        response = self.client.delete(reverse_lazy("user-detail", kwargs={"pk": 1}))
+        assert User.objects.count() == 0
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.data is None

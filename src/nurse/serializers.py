@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from nurse.models import Nurse, Patient, Prescription
 from rest_framework import serializers
 
@@ -17,4 +18,10 @@ class PrescriptionSerializer(serializers.ModelSerializer):
 class NurseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nurse
+        fields = "__all__"
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
         fields = "__all__"
