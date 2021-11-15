@@ -216,3 +216,47 @@ class NurseTests(APITestCase):
             "zip_code": "95300",
             "city": "Pontoise",
         }
+
+
+class UserTests(APITestCase):
+    url = reverse_lazy("register")
+
+    username = {"username": "username1"}
+    password = {"password": "password1"}
+    data = {**username, **password}
+
+    def test_url(self):
+        assert self.url == "/account/register"
+
+    def test_create(self):
+        assert User.objects.filter(**self.username).count() == 0
+        response = self.client.post(self.url, self.data, format="json")
+        assert response.data == self.username
+        assert response.status_code == status.HTTP_201_CREATED
+        assert User.objects.filter(**self.username).count() == 1
+
+    def test_get(self):
+        """It's not allowed to list all users."""
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        assert response.data == {"detail": 'Method "GET" not allowed.'}
+
+    def test_auth_ok(self):
+        """Note this isn't a REST endpoint."""
+        url = reverse_lazy("rest_framework:login")
+        assert url == "/account/login/"
+        user = User.objects.create(**self.username)
+        user.set_password(self.password["password"])
+        user.save()
+        response = self.client.post(url, self.data)
+        assert response.status_code == status.HTTP_302_FOUND
+        # redirecting to the profile page
+        assert response.get("Location") == "/accounts/profile/"
+
+    def test_auth_error(self):
+        url = reverse_lazy("rest_framework:login")
+        response = self.client.post(url, self.data)
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            "Please enter a correct username and password" in response.content.decode()
+        )
