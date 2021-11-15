@@ -6,7 +6,8 @@ from nurse.serializers import (
     PrescriptionSerializer,
     UserSerializer,
 )
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
+from rest_framework.permissions import AllowAny
 
 
 class PatientViewSet(viewsets.ModelViewSet):
@@ -27,3 +28,9 @@ class NurseViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+class UserCreate(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (AllowAny,)

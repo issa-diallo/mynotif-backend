@@ -140,4 +140,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = json.loads(os.environ.get("CORS_ALLOWED_ORIGINS", "[]"))
 
-django_on_heroku.settings(locals())
+if not DEBUG:
+    django_on_heroku.settings(locals())
