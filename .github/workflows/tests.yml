@@ -14,4 +14,4 @@ jobs:
       - run: pip install -r requirements.txt
       - run: flake8 src/
       - run: black --check src/
-      - run: pytest src/nurse/tests.py
+      - run: pytest src/project_nursing/tests.py src/nurse/tests.py

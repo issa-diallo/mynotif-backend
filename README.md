@@ -1,22 +1,33 @@
 # MyNotif with Django
 
-:tada: https://mynotif.herokuapp.com/
+[![Tests](https://github.com/issa-diallo/Mynotif_backend/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/issa-diallo/Mynotif_backend/actions/workflows/tests.yml)
 
-## You can run
+## URLs
 
-:tada: python3 manage.py runserver
+- :tada: https://mynotif.herokuapp.com/
+- :memo: https://mynotif.herokuapp.com/swagger/
+- :memo: https://mynotif.herokuapp.com/redoc/
 
-## You can run test 
+## :tada: run
+```sh
+python3 src/project_nursing/manage.py runserver
+```
 
-:test_tube: pytest nurse/tests.py
+## :test_tube: test
+```
+pytest src/project_nursing/tests.py src/nurse/tests.py
+```
 
-### Setup linting
-
-:rotating_light: flake8 and black .
+### :rotating_light: linting
+```sh
+flake8 src/
+black src/
+```
 
 ### DEBUG
-
+```sh
 import pdb; pdb.set_trace()
+```
 
 ## Learn More
 
