@@ -28,8 +28,8 @@ pyflakes==2.3.1
 Pygments==2.9.0
 pyparsing==2.4.7
 pyrepl==0.9.0
-pytest==6.2.4
-pytest-django==4.4.0
+pytest==6.2.5
+pytest-django==4.5.2
 python-dateutil==2.8.2
 pytz==2021.1
 PyYAML==5.4.1

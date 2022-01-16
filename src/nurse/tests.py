@@ -262,7 +262,6 @@ class TestUser:
         assert User.objects.count() == 1
         assert response.data == {
             "id": 1,
-            "password": "password123!@",
             "last_login": None,
             "is_superuser": False,
             "username": "@Issa",
@@ -284,7 +283,6 @@ class TestUser:
         assert response.data == [
             {
                 "id": 1,
-                "password": "",
                 "last_login": None,
                 "is_superuser": False,
                 "username": "",
@@ -306,7 +304,6 @@ class TestUser:
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {
             "id": 1,
-            "password": "",
             "last_login": None,
             "is_superuser": False,
             "username": "",
@@ -329,7 +326,6 @@ class TestUser:
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {
             "id": 1,
-            "password": "password123!@",
             "last_login": None,
             "is_superuser": False,
             "username": "@Issa",
@@ -349,3 +345,62 @@ class TestUser:
         assert User.objects.count() == 0
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
+
+
+@pytest.mark.django_db
+class TestAccountRegister:
+    client = APIClient()
+    url = reverse_lazy("register")
+    username = {"username": "username1"}
+    password = {"password": "password1"}
+    data = {**username, **password}
+
+    def test_url(self):
+        assert self.url == "/account/register"
+
+    @freeze_time("2021-01-16 16:00:00")
+    def test_create(self):
+        assert User.objects.filter(**self.username).count() == 0
+        response = self.client.post(self.url, self.data, format="json")
+        assert response.data == {
+            "id": 1,
+            "last_login": None,
+            "is_superuser": False,
+            "username": "username1",
+            "first_name": "",
+            "last_name": "",
+            "email": "",
+            "is_staff": False,
+            "is_active": True,
+            "date_joined": "2021-01-16T16:00:00Z",
+            "groups": [],
+            "user_permissions": [],
+        }
+        assert response.status_code == status.HTTP_201_CREATED
+        assert User.objects.filter(**self.username).count() == 1
+
+    def test_get(self):
+        """It's not allowed to list all users."""
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        assert response.data == {"detail": 'Method "GET" not allowed.'}
+
+    def test_auth_ok(self):
+        """Note this isn't a REST endpoint."""
+        url = reverse_lazy("rest_framework:login")
+        assert url == "/account/login/"
+        user = User.objects.create(**self.username)
+        user.set_password(self.password["password"])
+        user.save()
+        response = self.client.post(url, self.data)
+        assert response.status_code == status.HTTP_302_FOUND
+        # redirecting to the profile page
+        assert response.get("Location") == "/accounts/profile/"
+
+    def test_auth_error(self):
+        url = reverse_lazy("rest_framework:login")
+        response = self.client.post(url, self.data)
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            "Please enter a correct username and password" in response.content.decode()
+        )

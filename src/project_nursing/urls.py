@@ -18,6 +18,7 @@ from django.urls import path
 from django.urls.conf import include
 
 from nurse.urls import router as nurse_router
+from nurse import views as nurse_views
 from rest_framework import routers
 from rest_framework.schemas import get_schema_view
 
@@ -27,6 +28,8 @@ router.registry.extend(nurse_router.registry)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("account/", include("rest_framework.urls")),
+    path("account/register", nurse_views.UserCreate.as_view(), name="register"),
     path("", include(router.urls)),
     path(
         "openapi",
