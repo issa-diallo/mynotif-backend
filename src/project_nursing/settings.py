@@ -28,7 +28,7 @@ SECRET_KEY = "django-insecure-gmzzy_phk&y296hn9k&@st$@^4)_wz1ssaz0y0l@ck8xa=mda*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not bool(os.environ.get("PRODUCTION"))
 
-ALLOWED_HOSTS = ["127.0.0.1", "mynotif-api.herokuapp.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "mynotif-api.herokuapp.com"]
 
 
 # Application definition
