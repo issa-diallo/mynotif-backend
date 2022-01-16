@@ -14,17 +14,33 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.urls.conf import include
 
 from nurse.urls import router as nurse_router
 from nurse import views as nurse_views
-from rest_framework import routers
+from rest_framework import routers, permissions
 from rest_framework.schemas import get_schema_view
+from drf_yasg.views import get_schema_view as drf_yasg_get_schema_view
+from drf_yasg import openapi
 
 
 router = routers.DefaultRouter()
 router.registry.extend(nurse_router.registry)
+
+title = "Mynotif"
+description = "API Mynotif"
+version = "1.0.0"
+
+schema_view = drf_yasg_get_schema_view(
+    openapi.Info(
+        title=title,
+        default_version=version,
+        description=description,
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -33,7 +49,20 @@ urlpatterns = [
     path("", include(router.urls)),
     path(
         "openapi",
-        get_schema_view(title="Mynotif", description="API Mynotif", version="1.0.0"),
+        get_schema_view(title=title, description=description, version=version),
         name="openapi-schema",
+    ),
+    re_path(
+        r"^swagger(?P<format>\.json|\.yaml)$",
+        schema_view.without_ui(cache_timeout=0),
+        name="schema-json",
+    ),
+    re_path(
+        r"^swagger/$",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    re_path(
+        r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
     ),
 ]
