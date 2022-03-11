@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "nurse",
     "rest_framework",
+    "rest_framework.authtoken",
     "django_on_heroku",
     "django_extensions",
     "corsheaders",
@@ -140,6 +141,15 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = json.loads(os.environ.get("CORS_ALLOWED_ORIGINS", "[]"))
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+}
 
 if not DEBUG:
     django_on_heroku.settings(locals())

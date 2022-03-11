@@ -1,6 +1,6 @@
 # MyNotif with Django
 
-[![Tests](https://github.com/issa-diallo/Mynotif_backend/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/issa-diallo/Mynotif_backend/actions/workflows/tests.yml)
+[![Tests](https://github.com/issa-diallo/Mynotif_backend/actions/workflows/tests.yml/badge.svg)](https://github.com/issa-diallo/Mynotif_backend/actions/workflows/tests.yml)
 
 ## URLs
 
