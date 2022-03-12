@@ -1,3 +1,4 @@
+from unittest import mock
 from datetime import date
 from freezegun import freeze_time
 import pytest
@@ -7,6 +8,21 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from .models import Nurse, Patient, Prescription
+
+
+def authenticate(client, username, password):
+    """Creates a user and authenticates it via token."""
+    username_kw = {"username": username}
+    password_kw = {"password": password}
+    credentials = {**username_kw, **password_kw}
+    user = User.objects.create(**username_kw)
+    user.set_password(credentials["password"])
+    user.save()
+    response = client.post(
+        reverse_lazy("api_token_auth"), {**credentials}, format="json"
+    )
+    token = response.data["token"]
+    client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
 
 
 @pytest.mark.django_db
@@ -24,6 +40,17 @@ class TestPatient:
         "city": "courdimanche",
         "phone": "0602015454",
     }
+
+    username = "username1"
+    password = "password1"
+
+    def setup_method(self, method):
+        """Creates a user and authenticates it via token."""
+        authenticate(self.client, self.username, self.password)
+
+    def teardown_method(self, method):
+        """Invalidate credentials."""
+        self.client.credentials()
 
     def test_endpoint_patient(self):
         assert self.url == "/patient/"
@@ -94,6 +121,17 @@ class TestPrescription:
         "photo_prescription": "path_image",
     }
 
+    username = "username1"
+    password = "password1"
+
+    def setup_method(self, method):
+        """Creates a user and authenticates it via token."""
+        authenticate(self.client, self.username, self.password)
+
+    def teardown_method(self, method):
+        """Invalidate credentials."""
+        self.client.credentials()
+
     my_start_date = date(2022, 7, 15)
     my_end_date = date(2022, 7, 31)
 
@@ -148,14 +186,17 @@ class TestPrescription:
             "patient": None,
         }
 
+    # TODO:
+    # makes sure we can only delete the prescription associated to the
+    # authenticated user
     def test_prescription_delete(self):
         Prescription.objects.create(**self.data)
         response = self.client.delete(
             reverse_lazy("prescription-detail", kwargs={"pk": 1})
         )
-        assert Prescription.objects.count() == 0
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
+        assert Prescription.objects.count() == 0
 
 
 @pytest.mark.django_db
@@ -173,12 +214,24 @@ class TestNurse:
         "city": "Pontoise",
     }
 
+    username = "username1"
+    password = "password1"
+
+    def setup_method(self, method):
+        """Creates a user and authenticates it via token."""
+        authenticate(self.client, self.username, self.password)
+
+    def teardown_method(self, method):
+        """Invalidate credentials."""
+        self.client.credentials()
+
     def test_endpoind_nurse(self):
         assert self.url == "/nurse/"
 
     def test_create_nurse(self):
-        user = User.objects.create()
+        user = User.objects.get()
         response = self.client.post(self.url, self.data, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data == {
             **self.data,
             **{
@@ -195,7 +248,7 @@ class TestNurse:
         assert nurse.city == "Pontoise"
 
     def test_nurse_list(self):
-        user = User.objects.create()
+        user = User.objects.get()
         Nurse.objects.create(
             user=user,
             phone="0134643232",
@@ -218,7 +271,7 @@ class TestNurse:
         ]
 
     def test_nurse_detail(self):
-        user = User.objects.create()
+        user = User.objects.get()
         Nurse.objects.create(
             user=user,
             phone="0134643232",
@@ -252,32 +305,32 @@ class TestUser:
         "password": "password123!@",
     }
 
+    def setup_method(self, method):
+        """Creates a user and authenticates it via token."""
+        authenticate(self.client, self.data["username"], self.data["password"])
+
+    def teardown_method(self, method):
+        """Invalidate credentials."""
+        self.client.credentials()
+
     def test_endpoind_user(self):
         assert self.url == "/user/"
 
-    @freeze_time("2021-08-03 07:45:25")
+    # TODO: this endpoint is under authentication, but shouldn't be
     def test_create_user(self):
+        # deletes already existing (setup_method()) user so it doesn't conflict
+        User.objects.get().delete()
         response = self.client.post(self.url, self.data, format="json")
-        assert response.status_code == status.HTTP_201_CREATED
-        assert User.objects.count() == 1
-        assert response.data == {
-            "id": 1,
-            "last_login": None,
-            "is_superuser": False,
-            "username": "@Issa",
-            "first_name": "",
-            "last_name": "",
-            "email": "issa_test@test.com",
-            "is_staff": False,
-            "is_active": True,
-            "date_joined": "2021-08-03T07:45:25Z",
-            "groups": [],
-            "user_permissions": [],
-        }
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @freeze_time("2021-08-03 07:45:25")
+    def test_create_user_already_exists(self):
+        response = self.client.post(self.url, self.data, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            response.data["username"][0] == "A user with that username already exists."
+        )
+
     def test_list_user(self):
-        User.objects.create()
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data == [
@@ -285,19 +338,18 @@ class TestUser:
                 "id": 1,
                 "last_login": None,
                 "is_superuser": False,
-                "username": "",
+                "username": self.data["username"],
                 "first_name": "",
                 "last_name": "",
                 "email": "",
                 "is_staff": False,
                 "is_active": True,
-                "date_joined": "2021-08-03T07:45:25Z",
+                "date_joined": mock.ANY,
                 "groups": [],
                 "user_permissions": [],
             }
         ]
 
-    @freeze_time("2021-08-03 07:45:25")
     def test_detail_user(self):
         User.objects.create()
         response = self.client.get(reverse_lazy("user-detail", kwargs={"pk": 1}))
@@ -306,20 +358,18 @@ class TestUser:
             "id": 1,
             "last_login": None,
             "is_superuser": False,
-            "username": "",
+            "username": self.data["username"],
             "first_name": "",
             "last_name": "",
             "email": "",
             "is_staff": False,
             "is_active": True,
-            "date_joined": "2021-08-03T07:45:25Z",
+            "date_joined": mock.ANY,
             "groups": [],
             "user_permissions": [],
         }
 
-    @freeze_time("2021-08-03 07:45:25")
     def test_update_user(self):
-        User.objects.create(**self.data)
         response = self.client.put(
             reverse_lazy("user-detail", kwargs={"pk": 1}), self.data, format="json"
         )
@@ -328,23 +378,24 @@ class TestUser:
             "id": 1,
             "last_login": None,
             "is_superuser": False,
-            "username": "@Issa",
+            "username": self.data["username"],
             "first_name": "",
             "last_name": "",
-            "email": "issa_test@test.com",
+            "email": self.data["email"],
             "is_staff": False,
             "is_active": True,
-            "date_joined": "2021-08-03T07:45:25Z",
+            "date_joined": mock.ANY,
             "groups": [],
             "user_permissions": [],
         }
 
+    # TODO: only allow to delete safe user
     def test_delete_user(self):
-        User.objects.create(**self.data)
+        assert User.objects.count() == 1
         response = self.client.delete(reverse_lazy("user-detail", kwargs={"pk": 1}))
-        assert User.objects.count() == 0
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
+        assert User.objects.count() == 0
 
 
 @pytest.mark.django_db

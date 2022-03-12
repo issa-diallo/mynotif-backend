@@ -21,6 +21,7 @@ from nurse.urls import router as nurse_router
 from nurse import views as nurse_views
 from rest_framework import routers, permissions
 from rest_framework.schemas import get_schema_view
+from rest_framework.authtoken.views import obtain_auth_token
 from drf_yasg.views import get_schema_view as drf_yasg_get_schema_view
 from drf_yasg import openapi
 
@@ -46,6 +47,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("account/", include("rest_framework.urls")),
     path("account/register", nurse_views.UserCreate.as_view(), name="register"),
+    path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
     path("", include(router.urls)),
     path(
         "openapi",
