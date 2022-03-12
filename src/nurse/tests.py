@@ -426,6 +426,7 @@ class TestAccountRegister:
         users = User.objects.filter(**self.username)
         assert users.count() == 1
         user = users.get()
+        assert user.check_password(self.password["password"]) is True
         assert user.nurse is not None
 
     def test_create_already_exists(self):
