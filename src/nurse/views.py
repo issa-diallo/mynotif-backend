@@ -8,6 +8,8 @@ from nurse.serializers import (
 )
 from rest_framework import viewsets, generics, mixins
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 
 class PatientViewSet(viewsets.ModelViewSet):
@@ -23,6 +25,13 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
 class NurseViewSet(viewsets.ModelViewSet):
     queryset = Nurse.objects.all()
     serializer_class = NurseSerializer
+
+
+class ProfileView(APIView):
+    def get(self, request):
+        request.user
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
 
 class UserViewSet(
