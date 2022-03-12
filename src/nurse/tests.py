@@ -18,6 +18,8 @@ def authenticate(client, username, password):
     user = User.objects.create(**username_kw)
     user.set_password(credentials["password"])
     user.save()
+    # voids previous credentials to avoid "Invalid token" errors
+    client.credentials()
     response = client.post(
         reverse_lazy("api_token_auth"), {**credentials}, format="json"
     )
@@ -66,6 +68,7 @@ class TestPatient:
         assert patient.zip_code == "95400"
         assert patient.city == "courdimanche"
 
+    # TODO: this should be authenticated users only
     def test_patient_list(self):
         Patient.objects.create(**self.data)
         response = self.client.get(self.url)
@@ -305,32 +308,21 @@ class TestUser:
         "password": "password123!@",
     }
 
-    def setup_method(self, method):
-        """Creates a user and authenticates it via token."""
-        authenticate(self.client, self.data["username"], self.data["password"])
-
-    def teardown_method(self, method):
-        """Invalidate credentials."""
-        self.client.credentials()
-
     def test_endpoind_user(self):
         assert self.url == "/user/"
 
-    # TODO: this endpoint is under authentication, but shouldn't be
     def test_create_user(self):
-        # deletes already existing (setup_method()) user so it doesn't conflict
-        User.objects.get().delete()
+        """The user creation is via another a different endpoint (/account/register)."""
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_create_user_already_exists(self):
+        # it should be no way to create user via this endpoint
+        # even being authenticated
+        authenticate(self.client, self.data["username"], self.data["password"])
         response = self.client.post(self.url, self.data, format="json")
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert (
-            response.data["username"][0] == "A user with that username already exists."
-        )
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_list_user(self):
+        authenticate(self.client, self.data["username"], self.data["password"])
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data == [
@@ -350,8 +342,9 @@ class TestUser:
             }
         ]
 
+    # TODO: only allow to view self user
     def test_detail_user(self):
-        User.objects.create()
+        authenticate(self.client, self.data["username"], self.data["password"])
         response = self.client.get(reverse_lazy("user-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {
@@ -369,7 +362,9 @@ class TestUser:
             "user_permissions": [],
         }
 
+    # TODO: only allow to update self user
     def test_update_user(self):
+        authenticate(self.client, self.data["username"], self.data["password"])
         response = self.client.put(
             reverse_lazy("user-detail", kwargs={"pk": 1}), self.data, format="json"
         )
@@ -389,9 +384,9 @@ class TestUser:
             "user_permissions": [],
         }
 
-    # TODO: only allow to delete safe user
+    # TODO: only allow to delete self user
     def test_delete_user(self):
-        assert User.objects.count() == 1
+        authenticate(self.client, self.data["username"], self.data["password"])
         response = self.client.delete(reverse_lazy("user-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
@@ -428,6 +423,21 @@ class TestAccountRegister:
             "user_permissions": [],
         }
         assert response.status_code == status.HTTP_201_CREATED
+        users = User.objects.filter(**self.username)
+        assert users.count() == 1
+        user = users.get()
+        assert user.nurse is not None
+
+    def test_create_already_exists(self):
+        assert User.objects.filter(**self.username).count() == 0
+        response = self.client.post(self.url, self.data, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert User.objects.filter(**self.username).count() == 1
+        response = self.client.post(self.url, self.data, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            response.data["username"][0] == "A user with that username already exists."
+        )
         assert User.objects.filter(**self.username).count() == 1
 
     def test_get(self):
