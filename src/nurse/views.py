@@ -6,7 +6,7 @@ from nurse.serializers import (
     PrescriptionSerializer,
     UserSerializer,
 )
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, mixins
 from rest_framework.permissions import AllowAny
 
 
@@ -25,7 +25,18 @@ class NurseViewSet(viewsets.ModelViewSet):
     serializer_class = NurseSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    Retrieve, update, destroy and list, but no create.
+    For Create, see `UserCreate` below.
+    """
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -34,3 +45,12 @@ class UserCreate(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        username = response.data["username"]
+        user = User.objects.get(username=username)
+        Nurse.objects.create(
+            user=user,
+        )
+        return response
