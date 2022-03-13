@@ -47,6 +47,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("account/", include("rest_framework.urls")),
     path("account/register", nurse_views.UserCreate.as_view(), name="register"),
+    path("", include("nurse.urls"), name="nurse"),
     path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
     path("", include(router.urls)),
     path(

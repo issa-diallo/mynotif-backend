@@ -138,7 +138,7 @@ class TestPrescription:
     my_start_date = date(2022, 7, 15)
     my_end_date = date(2022, 7, 31)
 
-    def test_endpoind_prescription(self):
+    def test_endpoint(self):
         assert self.url == "/prescription/"
 
     def test_create_prescription(self):
@@ -228,7 +228,7 @@ class TestNurse:
         """Invalidate credentials."""
         self.client.credentials()
 
-    def test_endpoind_nurse(self):
+    def test_endpoint(self):
         assert self.url == "/nurse/"
 
     def test_create_nurse(self):
@@ -308,7 +308,7 @@ class TestUser:
         "password": "password123!@",
     }
 
-    def test_endpoind_user(self):
+    def test_endpoint(self):
         assert self.url == "/user/"
 
     def test_create_user(self):
@@ -466,3 +466,36 @@ class TestAccountRegister:
         assert (
             "Please enter a correct username and password" in response.content.decode()
         )
+
+
+@pytest.mark.django_db
+class TestProfile:
+
+    client = APIClient()
+
+    url = "/profile/"
+
+    username = "username1"
+    password = "password1"
+
+    def test_endpoint(self):
+        assert self.url == reverse_lazy("profile")
+
+    def test_get(self):
+        authenticate(self.client, self.username, self.password)
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {
+            "id": 1,
+            "last_login": None,
+            "is_superuser": False,
+            "username": "username1",
+            "first_name": "",
+            "last_name": "",
+            "email": "",
+            "is_staff": False,
+            "is_active": True,
+            "date_joined": mock.ANY,
+            "groups": [],
+            "user_permissions": [],
+        }
