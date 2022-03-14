@@ -1,4 +1,3 @@
-from unittest import mock
 from datetime import date
 from freezegun import freeze_time
 import pytest
@@ -328,66 +327,94 @@ class TestUser:
         assert response.data == [
             {
                 "id": 1,
-                "last_login": None,
-                "is_superuser": False,
                 "username": self.data["username"],
                 "first_name": "",
                 "last_name": "",
                 "email": "",
-                "is_staff": False,
-                "is_active": True,
-                "date_joined": mock.ANY,
-                "groups": [],
-                "user_permissions": [],
             }
         ]
 
-    # TODO: only allow to view self user
     def test_detail_user(self):
         authenticate(self.client, self.data["username"], self.data["password"])
-        response = self.client.get(reverse_lazy("user-detail", kwargs={"pk": 1}))
+        response = self.client.get(reverse_lazy("user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {
             "id": 1,
-            "last_login": None,
-            "is_superuser": False,
             "username": self.data["username"],
             "first_name": "",
             "last_name": "",
             "email": "",
-            "is_staff": False,
-            "is_active": True,
-            "date_joined": mock.ANY,
-            "groups": [],
-            "user_permissions": [],
         }
 
-    # TODO: only allow to update self user
+    @pytest.mark.parametrize(
+        "action",
+        [
+            # get
+            (lambda client, path, data=None, format=None: client.get(path)),
+            # put
+            (
+                lambda client, path, data=None, format=None: client.put(
+                    path, data, format
+                )
+            ),
+            # patch
+            (
+                lambda client, path, data=None, format=None: client.patch(
+                    path, data, format
+                )
+            ),
+            # delete
+            (lambda client, path, data=None, format=None: client.delete(path)),
+        ],
+    )
+    def test_pk_permission_denied(self, action):
+        """We can only view/update/delete self user by using `pk=<not-a-number>`"""
+        authenticate(self.client, self.data["username"], self.data["password"])
+        response = action(
+            self.client,
+            # using a number for the pk would mean we're trying to access CRUD
+            # operations on a specific user which is forbidden
+            reverse_lazy("user-detail", kwargs={"pk": 1}),
+            self.data,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert (
+            response.data["detail"]
+            == "You do not have permission to perform this action."
+        )
+
     def test_update_user(self):
         authenticate(self.client, self.data["username"], self.data["password"])
+        data = {**self.data, "first_name": "Firstname1", "last_name": "Lastname 1"}
         response = self.client.put(
-            reverse_lazy("user-detail", kwargs={"pk": 1}), self.data, format="json"
+            reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data.pop("password")
+        assert response.data == {
+            **data,
+            "id": 1,
+        }
+
+    def test_partial_update_user(self):
+        """Using a patch for a partial update (not all fields)."""
+        authenticate(self.client, self.data["username"], self.data["password"])
+        data = {"first_name": "Firstname1", "last_name": "Lastname 1"}
+        response = self.client.patch(
+            reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {
             "id": 1,
-            "last_login": None,
-            "is_superuser": False,
             "username": self.data["username"],
-            "first_name": "",
-            "last_name": "",
-            "email": self.data["email"],
-            "is_staff": False,
-            "is_active": True,
-            "date_joined": mock.ANY,
-            "groups": [],
-            "user_permissions": [],
+            "email": "",
+            **data,
         }
 
-    # TODO: only allow to delete self user
     def test_delete_user(self):
         authenticate(self.client, self.data["username"], self.data["password"])
-        response = self.client.delete(reverse_lazy("user-detail", kwargs={"pk": 1}))
+        response = self.client.delete(reverse_lazy("user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
         assert User.objects.count() == 0
@@ -410,17 +437,10 @@ class TestAccountRegister:
         response = self.client.post(self.url, self.data, format="json")
         assert response.data == {
             "id": 1,
-            "last_login": None,
-            "is_superuser": False,
             "username": "username1",
             "first_name": "",
             "last_name": "",
             "email": "",
-            "is_staff": False,
-            "is_active": True,
-            "date_joined": "2021-01-16T16:00:00Z",
-            "groups": [],
-            "user_permissions": [],
         }
         assert response.status_code == status.HTTP_201_CREATED
         users = User.objects.filter(**self.username)
@@ -487,15 +507,8 @@ class TestProfile:
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {
             "id": 1,
-            "last_login": None,
-            "is_superuser": False,
             "username": "username1",
             "first_name": "",
             "last_name": "",
             "email": "",
-            "is_staff": False,
-            "is_active": True,
-            "date_joined": mock.ANY,
-            "groups": [],
-            "user_permissions": [],
         }
