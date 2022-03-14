@@ -7,6 +7,7 @@ from nurse.serializers import (
     UserSerializer,
 )
 from rest_framework import viewsets, generics, mixins
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -48,6 +49,12 @@ class UserViewSet(
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def get_object(self):
+        """Fecthing a specific object other than `request.user` isn't allowed."""
+        if self.kwargs.get("pk").isdigit():
+            raise PermissionDenied()
+        return self.request.user
 
 
 class UserCreate(generics.CreateAPIView):
