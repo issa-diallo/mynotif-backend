@@ -4,10 +4,9 @@
 
 ## URLs
 
-- :tada: https://mynotif.herokuapp.com/
 - :tada: https://mynotif-api.herokuapp.com/
-- :memo: https://mynotif.herokuapp.com/swagger/
-- :memo: https://mynotif.herokuapp.com/redoc/
+- :memo: https://mynotif-api.herokuapp.com/swagger/
+- :memo: https://mynotif-api.herokuapp.com/redoc/
 - :goal_net: https://sentry.io/organizations/andre-5t/issues/3096848907/?project=6257099
 
 ## :tada: run

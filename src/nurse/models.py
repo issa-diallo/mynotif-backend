@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -42,3 +43,7 @@ class Prescription(models.Model):
 
     def __str__(self):
         return str(self.carte_vitale)
+
+    def is_valid(self):
+        """Returns true if the prescription is still valid (e.g. hasn't expired)."""
+        return self.start_date <= datetime.now().date() <= self.end_date

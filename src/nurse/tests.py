@@ -26,6 +26,17 @@ def authenticate(client, username, password):
     client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
 
 
+prescription_data = {
+    "carte_vitale": "12345678910",
+    "caisse_rattachement": "12345678910",
+    "prescribing_doctor": "Dr Leen",
+    "start_date": "2022-07-15",
+    "end_date": "2022-07-31",
+    "at_renew": 1,
+    "photo_prescription": "path_image",
+}
+
+
 @pytest.mark.django_db
 class TestPatient:
 
@@ -68,8 +79,31 @@ class TestPatient:
         assert patient.city == "courdimanche"
 
     # TODO: this should be authenticated users only
+    @freeze_time("2022-08-11")
     def test_patient_list(self):
-        Patient.objects.create(**self.data)
+        patient = Patient.objects.create(**self.data)
+        # note that we create 3 prescriptions, but only the last two should show up
+        Prescription.objects.create(**{**prescription_data, **{"patient": patient}})
+        Prescription.objects.create(
+            **{
+                **prescription_data,
+                **{
+                    "patient": patient,
+                    "start_date": "2022-08-01",
+                    "end_date": "2022-08-10",
+                },
+            }
+        )
+        Prescription.objects.create(
+            **{
+                **prescription_data,
+                **{
+                    "patient": patient,
+                    "start_date": "2022-08-10",
+                    "end_date": "2022-08-20",
+                },
+            }
+        )
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data == [
@@ -81,6 +115,32 @@ class TestPatient:
                 "zip_code": "95400",
                 "city": "courdimanche",
                 "phone": "0602015454",
+                "prescriptions": [
+                    {
+                        "id": 3,
+                        "patient": 1,
+                        "carte_vitale": "12345678910",
+                        "caisse_rattachement": "12345678910",
+                        "prescribing_doctor": "Dr Leen",
+                        "start_date": "2022-08-10",
+                        "end_date": "2022-08-20",
+                        "at_renew": 1,
+                        "photo_prescription": "path_image",
+                        "is_valid": True,
+                    },
+                    {
+                        "id": 2,
+                        "patient": 1,
+                        "carte_vitale": "12345678910",
+                        "caisse_rattachement": "12345678910",
+                        "prescribing_doctor": "Dr Leen",
+                        "start_date": "2022-08-01",
+                        "end_date": "2022-08-10",
+                        "at_renew": 1,
+                        "photo_prescription": "path_image",
+                        "is_valid": False,
+                    },
+                ],
             }
         ]
 
@@ -96,6 +156,7 @@ class TestPatient:
             "zip_code": "95400",
             "city": "courdimanche",
             "phone": "0602015454",
+            "prescriptions": [],
         }
 
     def test_patient_delete(self):
@@ -113,16 +174,7 @@ class TestPrescription:
 
     url = reverse_lazy("prescription-list")
 
-    data = {
-        "carte_vitale": "12345678910",
-        "caisse_rattachement": "12345678910",
-        "prescribing_doctor": "Dr Leen",
-        "start_date": "2022-07-15",
-        "end_date": "2022-07-31",
-        "at_renew": 1,
-        "photo_prescription": "path_image",
-    }
-
+    data = prescription_data
     username = "username1"
     password = "password1"
 
@@ -152,6 +204,7 @@ class TestPrescription:
         assert prescription.at_renew == 1
         assert prescription.photo_prescription == "path_image"
 
+    @freeze_time("2022-08-11")
     def test_prescription_list(self):
         Prescription.objects.create(**self.data)
         response = self.client.get(self.url)
@@ -167,9 +220,11 @@ class TestPrescription:
                 "at_renew": 1,
                 "photo_prescription": "path_image",
                 "patient": None,
+                "is_valid": False,
             }
         ]
 
+    @freeze_time("2022-07-20")
     def test_prescription_detail(self):
         Prescription.objects.create(**self.data)
         response = self.client.get(
@@ -186,6 +241,7 @@ class TestPrescription:
             "at_renew": 1,
             "photo_prescription": "path_image",
             "patient": None,
+            "is_valid": True,
         }
 
     # TODO:
