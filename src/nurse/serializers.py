@@ -4,15 +4,28 @@ from rest_framework import serializers
 
 
 class PatientSerializer(serializers.ModelSerializer):
+    prescriptions = serializers.SerializerMethodField()
+
     class Meta:
         model = Patient
         fields = "__all__"
 
+    def get_prescriptions(self, obj):
+        prescriptions = Prescription.objects.filter(patient_id=obj.id).order_by(
+            "-end_date"
+        )[:2]
+        return PrescriptionSerializer(prescriptions, many=True).data
+
 
 class PrescriptionSerializer(serializers.ModelSerializer):
+    is_valid = serializers.SerializerMethodField()
+
     class Meta:
         model = Prescription
         fields = "__all__"
+
+    def get_is_valid(self, obj):
+        return obj.is_valid()
 
 
 class NurseSerializer(serializers.ModelSerializer):
