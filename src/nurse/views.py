@@ -66,7 +66,7 @@ class UserCreate(generics.CreateAPIView):
         response = super().post(request, *args, **kwargs)
         username = response.data["username"]
         user = User.objects.get(username=username)
-        Nurse.objects.create(
+        Nurse.objects.get_or_create(
             user=user,
         )
         return response
