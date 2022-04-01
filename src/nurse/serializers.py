@@ -35,9 +35,20 @@ class NurseSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    nurse = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ("id", "username", "email", "first_name", "last_name", "password")
+        fields = (
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "password",
+            "is_staff",
+            "nurse",
+        )
         read_only_fields = ("id",)
         extra_kwargs = {"password": {"write_only": True}}
 
@@ -47,3 +58,10 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+    def get_nurse(self, obj):
+        # note that we're doing a `get_or_create()` rather than accessing the
+        # `obj.nurse` directly, because it could be some cases where the user
+        # was created without the associated nurse
+        nurse, _ = Nurse.objects.get_or_create(user_id=obj.id)
+        return NurseSerializer(nurse).data

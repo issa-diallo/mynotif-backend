@@ -106,7 +106,7 @@ class TestPatient:
         )
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == [
+        assert response.json() == [
             {
                 "id": 1,
                 "firstname": "John",
@@ -148,7 +148,7 @@ class TestPatient:
         Patient.objects.create(**self.data)
         response = self.client.get(reverse_lazy("patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {
+        assert response.json() == {
             "id": 1,
             "firstname": "John",
             "lastname": "Leen",
@@ -209,7 +209,7 @@ class TestPrescription:
         Prescription.objects.create(**self.data)
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == [
+        assert response.json() == [
             {
                 "id": 1,
                 "carte_vitale": "12345678910",
@@ -231,7 +231,7 @@ class TestPrescription:
             reverse_lazy("prescription-detail", kwargs={"pk": 1})
         )
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {
+        assert response.json() == {
             "id": 1,
             "carte_vitale": "12345678910",
             "caisse_rattachement": "12345678910",
@@ -290,7 +290,7 @@ class TestNurse:
         user = User.objects.get()
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data == {
+        assert response.json() == {
             **self.data,
             **{
                 "id": 1,
@@ -316,7 +316,7 @@ class TestNurse:
         )
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == [
+        assert response.json() == [
             {
                 "id": 1,
                 "user": 1,
@@ -339,7 +339,7 @@ class TestNurse:
         )
         response = self.client.get(reverse_lazy("nurse-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {
+        assert response.json() == {
             "id": 1,
             "user": 1,
             "patients": [],
@@ -380,13 +380,23 @@ class TestUser:
         authenticate(self.client, self.data["username"], self.data["password"])
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == [
+        assert response.json() == [
             {
                 "id": 1,
                 "username": self.data["username"],
                 "first_name": "",
                 "last_name": "",
                 "email": "",
+                "is_staff": False,
+                "nurse": {
+                    "address": "",
+                    "city": "",
+                    "id": 1,
+                    "patients": [],
+                    "phone": "",
+                    "user": 1,
+                    "zip_code": "",
+                },
             }
         ]
 
@@ -394,12 +404,22 @@ class TestUser:
         authenticate(self.client, self.data["username"], self.data["password"])
         response = self.client.get(reverse_lazy("user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {
+        assert response.json() == {
             "id": 1,
             "username": self.data["username"],
             "first_name": "",
             "last_name": "",
             "email": "",
+            "is_staff": False,
+            "nurse": {
+                "id": 1,
+                "address": "",
+                "city": "",
+                "patients": [],
+                "phone": "",
+                "user": 1,
+                "zip_code": "",
+            },
         }
 
     @pytest.mark.parametrize(
@@ -448,9 +468,19 @@ class TestUser:
         )
         assert response.status_code == status.HTTP_200_OK
         data.pop("password")
-        assert response.data == {
+        assert response.json() == {
             **data,
             "id": 1,
+            "is_staff": False,
+            "nurse": {
+                "id": 1,
+                "address": "",
+                "city": "",
+                "patients": [],
+                "phone": "",
+                "user": 1,
+                "zip_code": "",
+            },
         }
 
     def test_partial_update_user(self):
@@ -461,11 +491,21 @@ class TestUser:
             reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
         )
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {
+        assert response.json() == {
             "id": 1,
             "username": self.data["username"],
             "email": "",
+            "is_staff": False,
             **data,
+            "nurse": {
+                "id": 1,
+                "address": "",
+                "city": "",
+                "patients": [],
+                "phone": "",
+                "user": 1,
+                "zip_code": "",
+            },
         }
 
     def test_delete_user(self):
@@ -491,12 +531,22 @@ class TestAccountRegister:
     def test_create(self):
         assert User.objects.filter(**self.username).count() == 0
         response = self.client.post(self.url, self.data, format="json")
-        assert response.data == {
+        assert response.json() == {
             "id": 1,
             "username": "username1",
             "first_name": "",
             "last_name": "",
             "email": "",
+            "is_staff": False,
+            "nurse": {
+                "id": 1,
+                "address": "",
+                "city": "",
+                "patients": [],
+                "phone": "",
+                "user": 1,
+                "zip_code": "",
+            },
         }
         assert response.status_code == status.HTTP_201_CREATED
         users = User.objects.filter(**self.username)
@@ -561,10 +611,20 @@ class TestProfile:
         authenticate(self.client, self.username, self.password)
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {
+        assert response.json() == {
             "id": 1,
             "username": "username1",
             "first_name": "",
             "last_name": "",
             "email": "",
+            "is_staff": False,
+            "nurse": {
+                "address": "",
+                "city": "",
+                "id": 1,
+                "patients": [],
+                "phone": "",
+                "user": 1,
+                "zip_code": "",
+            },
         }
