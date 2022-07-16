@@ -142,6 +142,8 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = json.loads(os.environ.get("CORS_ALLOWED_ORIGINS", "[]"))
+# Vercel dynamic previews
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://mynotif-git-[\w-]+-issa-diallo\.vercel\.app$"]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
