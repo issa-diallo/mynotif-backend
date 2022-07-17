@@ -1,4 +1,10 @@
 from django.contrib.auth.models import User
+from rest_framework import generics, mixins, viewsets
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from nurse.models import Nurse, Patient, Prescription
 from nurse.serializers import (
     NurseSerializer,
@@ -6,11 +12,6 @@ from nurse.serializers import (
     PrescriptionSerializer,
     UserSerializer,
 )
-from rest_framework import viewsets, generics, mixins
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 
 class PatientViewSet(viewsets.ModelViewSet):

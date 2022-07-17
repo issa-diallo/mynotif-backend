@@ -1,11 +1,12 @@
 from django.urls import path
 from rest_framework import routers
+
 from nurse.views import (
+    NurseViewSet,
     PatientViewSet,
     PrescriptionViewSet,
-    NurseViewSet,
-    UserViewSet,
     ProfileView,
+    UserViewSet,
 )
 
 router = routers.DefaultRouter()
