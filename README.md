@@ -13,6 +13,7 @@
 ```
 pip install -r requirements.txt
 pip install -e .[dev]
+cp .env.example .env
 ```
 
 ## :tada: run

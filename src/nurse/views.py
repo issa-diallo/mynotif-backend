@@ -9,6 +9,7 @@ from nurse.models import Nurse, Patient, Prescription
 from nurse.serializers import (
     NurseSerializer,
     PatientSerializer,
+    PrescriptionFileSerializer,
     PrescriptionSerializer,
     UserSerializer,
 )
@@ -22,6 +23,11 @@ class PatientViewSet(viewsets.ModelViewSet):
 class PrescriptionViewSet(viewsets.ModelViewSet):
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
+
+
+class PrescriptionFileView(generics.UpdateAPIView):
+    queryset = Prescription.objects.all()
+    serializer_class = PrescriptionFileSerializer
 
 
 class NurseViewSet(viewsets.ModelViewSet):
