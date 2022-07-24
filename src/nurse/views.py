@@ -24,6 +24,14 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
 
+    def get_queryset(self):
+        queryset = self.queryset
+        nurse, _ = Nurse.objects.get_or_create(
+            user=self.request.user,
+        )
+        query_set = queryset.filter(patient__nurse=nurse)
+        return query_set
+
 
 class PrescriptionFileView(generics.UpdateAPIView):
     queryset = Prescription.objects.all()

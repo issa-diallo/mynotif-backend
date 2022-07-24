@@ -32,6 +32,16 @@ def authenticate(client, username, password):
     )
     token = response.data["token"]
     client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
+    return user
+
+
+def attach_prescription(prescription, user):
+    patient, _ = Patient.objects.get_or_create(**patient_data)
+    nurse, _ = Nurse.objects.get_or_create(user=user)
+    nurse.patients.add(patient)
+    prescription.patient = patient
+    prescription.save()
+    return patient, prescription, nurse
 
 
 def get_test_image():
@@ -60,6 +70,15 @@ prescription_data = {
     "at_renew": 1,
 }
 
+patient_data = {
+    "firstname": "John",
+    "lastname": "Leen",
+    "address": "3 place du cerdan",
+    "zip_code": "95400",
+    "city": "courdimanche",
+    "phone": "0602015454",
+}
+
 
 @pytest.mark.django_db
 class TestPatient:
@@ -68,14 +87,7 @@ class TestPatient:
 
     url = reverse_lazy("patient-list")
 
-    data = {
-        "firstname": "John",
-        "lastname": "Leen",
-        "address": "3 place du cerdan",
-        "zip_code": "95400",
-        "city": "courdimanche",
-        "phone": "0602015454",
-    }
+    data = patient_data
 
     username = "username1"
     password = "password1"
@@ -196,6 +208,7 @@ class TestPatient:
 class TestPrescription:
 
     client = APIClient()
+    user = None
 
     url = reverse_lazy("prescription-list")
 
@@ -205,7 +218,7 @@ class TestPrescription:
 
     def setup_method(self, method):
         """Creates a user and authenticates it via token."""
-        authenticate(self.client, self.username, self.password)
+        self.user = authenticate(self.client, self.username, self.password)
 
     def teardown_method(self, method):
         """Invalidate credentials."""
@@ -214,6 +227,7 @@ class TestPrescription:
     def test_endpoint(self):
         assert self.url == "/prescription/"
 
+    # TODO: prescription should only be mapped to a patient's nurse
     def test_create_prescription(self):
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
@@ -228,9 +242,17 @@ class TestPrescription:
 
     @freeze_time("2022-08-11")
     def test_prescription_list(self):
-        Prescription.objects.create(**self.data)
+        # creating a prescription with no nurse attached
+        prescription = Prescription.objects.create(**self.data)
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
+        # the prescription isn't attached to a nurse
+        assert response.json() == []
+        # let's link patient, nurse and prescription together
+        patient, _, _ = attach_prescription(prescription, self.user)
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        # the nurse should see the attached prescription
         assert response.json() == [
             {
                 "id": 1,
@@ -241,14 +263,21 @@ class TestPrescription:
                 "end_date": "2022-07-31",
                 "at_renew": 1,
                 "photo_prescription": None,
-                "patient": None,
+                "patient": patient.id,
                 "is_valid": False,
             }
         ]
 
     @freeze_time("2022-07-20")
     def test_prescription_detail(self):
-        Prescription.objects.create(**self.data)
+        prescription = Prescription.objects.create(**self.data)
+        response = self.client.get(
+            reverse_lazy("prescription-detail", kwargs={"pk": 1})
+        )
+        # the prescription/patient is not linked to the logged nurse
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        # let's link patient, nurse and prescription together
+        patient, _, _ = attach_prescription(prescription, self.user)
         response = self.client.get(
             reverse_lazy("prescription-detail", kwargs={"pk": 1})
         )
@@ -262,15 +291,19 @@ class TestPrescription:
             "end_date": "2022-07-31",
             "at_renew": 1,
             "photo_prescription": None,
-            "patient": None,
+            "patient": patient.id,
             "is_valid": True,
         }
 
-    # TODO:
-    # makes sure we can only delete the prescription associated to the
-    # authenticated user
     def test_prescription_delete(self):
         prescription = Prescription.objects.create(**self.data)
+        response = self.client.delete(
+            reverse_lazy("prescription-detail", kwargs={"pk": prescription.id})
+        )
+        # the prescription/patient is not linked to the logged nurse
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        # let's link patient, nurse and prescription together
+        patient, _, _ = attach_prescription(prescription, self.user)
         response = self.client.delete(
             reverse_lazy("prescription-detail", kwargs={"pk": prescription.id})
         )
