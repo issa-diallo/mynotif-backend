@@ -1,9 +1,16 @@
 from datetime import date
+from pathlib import Path
+from unittest import mock
 
+import boto3
 import pytest
+import rest_framework
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls.base import reverse_lazy
 from freezegun import freeze_time
+from moto import mock_s3
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -27,6 +34,23 @@ def authenticate(client, username, password):
     client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
 
 
+def get_test_image():
+    image_path = (
+        Path(rest_framework.__file__).resolve().parent
+        / "static/rest_framework/img/glyphicons-halflings.png"
+    )
+    image = open(image_path, "rb")
+    return SimpleUploadedFile(image.name, image.read())
+
+
+@pytest.fixture
+def s3_mock():
+    with mock_s3():
+        s3 = boto3.client("s3", region_name="us-east-1")
+        s3.create_bucket(Bucket="mynotif-prescription")
+        yield
+
+
 prescription_data = {
     "carte_vitale": "12345678910",
     "caisse_rattachement": "12345678910",
@@ -34,7 +58,6 @@ prescription_data = {
     "start_date": "2022-07-15",
     "end_date": "2022-07-31",
     "at_renew": 1,
-    "photo_prescription": "path_image",
 }
 
 
@@ -81,6 +104,7 @@ class TestPatient:
 
     # TODO: this should be authenticated users only
     @freeze_time("2022-08-11")
+    @override_settings(AWS_ACCESS_KEY_ID="testing")
     def test_patient_list(self):
         patient = Patient.objects.create(**self.data)
         # note that we create 3 prescriptions, but only the last two should show up
@@ -126,7 +150,7 @@ class TestPatient:
                         "start_date": "2022-08-10",
                         "end_date": "2022-08-20",
                         "at_renew": 1,
-                        "photo_prescription": "path_image",
+                        "photo_prescription": None,
                         "is_valid": True,
                     },
                     {
@@ -138,7 +162,7 @@ class TestPatient:
                         "start_date": "2022-08-01",
                         "end_date": "2022-08-10",
                         "at_renew": 1,
-                        "photo_prescription": "path_image",
+                        "photo_prescription": None,
                         "is_valid": False,
                     },
                 ],
@@ -187,9 +211,6 @@ class TestPrescription:
         """Invalidate credentials."""
         self.client.credentials()
 
-    my_start_date = date(2022, 7, 15)
-    my_end_date = date(2022, 7, 31)
-
     def test_endpoint(self):
         assert self.url == "/prescription/"
 
@@ -200,10 +221,10 @@ class TestPrescription:
         prescription = Prescription.objects.get(carte_vitale="12345678910")
         assert prescription.caisse_rattachement == "12345678910"
         assert prescription.prescribing_doctor == "Dr Leen"
-        assert prescription.start_date == self.my_start_date
-        assert prescription.end_date == self.my_end_date
+        assert prescription.start_date == date(2022, 7, 15)
+        assert prescription.end_date == date(2022, 7, 31)
         assert prescription.at_renew == 1
-        assert prescription.photo_prescription == "path_image"
+        assert prescription.photo_prescription.name == ""
 
     @freeze_time("2022-08-11")
     def test_prescription_list(self):
@@ -219,7 +240,7 @@ class TestPrescription:
                 "start_date": "2022-07-15",
                 "end_date": "2022-07-31",
                 "at_renew": 1,
-                "photo_prescription": "path_image",
+                "photo_prescription": None,
                 "patient": None,
                 "is_valid": False,
             }
@@ -240,7 +261,7 @@ class TestPrescription:
             "start_date": "2022-07-15",
             "end_date": "2022-07-31",
             "at_renew": 1,
-            "photo_prescription": "path_image",
+            "photo_prescription": None,
             "patient": None,
             "is_valid": True,
         }
@@ -249,13 +270,46 @@ class TestPrescription:
     # makes sure we can only delete the prescription associated to the
     # authenticated user
     def test_prescription_delete(self):
-        Prescription.objects.create(**self.data)
+        prescription = Prescription.objects.create(**self.data)
         response = self.client.delete(
-            reverse_lazy("prescription-detail", kwargs={"pk": 1})
+            reverse_lazy("prescription-detail", kwargs={"pk": prescription.id})
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
         assert Prescription.objects.count() == 0
+
+    # TODO: only allow to upload to prescription we own (and test that), refs #64 & #67
+    # TODO: needed?
+    @override_settings(AWS_ACCESS_KEY_ID="testing")
+    def test_prescription_upload(self, s3_mock):
+        prescription = Prescription.objects.create(**self.data)
+        assert prescription.carte_vitale == "12345678910"
+        assert prescription.photo_prescription.name == ""
+        with pytest.raises(
+            ValueError,
+            match="The 'photo_prescription' attribute has no file associated with it.",
+        ):
+            prescription.photo_prescription.file
+        data = {
+            "photo_prescription": get_test_image(),
+        }
+        # patch should also be available
+        response = self.client.put(
+            reverse_lazy("prescription-upload", kwargs={"pk": prescription.id}), data
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "id": 1,
+            "photo_prescription": mock.ANY,
+        }
+        assert response.json()["photo_prescription"].startswith(
+            "https://mynotif-prescription.s3.amazonaws.com"
+            "/prescriptions/glyphicons-halflings.png"
+        )
+        prescription.refresh_from_db()
+        assert prescription.photo_prescription.name.endswith(get_test_image().name)
+        # makes sure other fields didn't get overwritten
+        assert prescription.carte_vitale == "12345678910"
 
 
 @pytest.mark.django_db

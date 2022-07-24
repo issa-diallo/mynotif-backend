@@ -24,9 +24,16 @@ class PrescriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prescription
         fields = "__all__"
+        read_only_fields = ("id", "photo_prescription")
 
     def get_is_valid(self, obj):
         return obj.is_valid()
+
+
+class PrescriptionFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        fields = ("id", "photo_prescription")
 
 
 class NurseSerializer(serializers.ModelSerializer):
