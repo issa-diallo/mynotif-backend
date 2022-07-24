@@ -1,8 +1,9 @@
 from datetime import date
-from freezegun import freeze_time
+
 import pytest
 from django.contrib.auth.models import User
 from django.urls.base import reverse_lazy
+from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.test import APIClient
 

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
-from nurse.models import Nurse, Patient, Prescription
 from rest_framework import serializers
+
+from nurse.models import Nurse, Patient, Prescription
 
 
 class PatientSerializer(serializers.ModelSerializer):

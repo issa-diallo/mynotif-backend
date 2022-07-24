@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from nurse.models import Nurse, Patient, Prescription
 
 

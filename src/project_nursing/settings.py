@@ -9,11 +9,12 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-import os
 import json
-import sentry_sdk
-import django_on_heroku
+import os
 from pathlib import Path
+
+import django_on_heroku
+import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
