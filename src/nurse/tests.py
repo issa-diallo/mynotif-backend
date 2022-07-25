@@ -181,6 +181,11 @@ class TestPatient:
             }
         ]
 
+    def test_patient_list_401(self):
+        """The endpoint should be under authentication."""
+        response = APIClient().get(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
     def test_patient_detail(self):
         Patient.objects.create(**self.data)
         response = self.client.get(reverse_lazy("patient-detail", kwargs={"pk": 1}))
@@ -267,6 +272,11 @@ class TestPrescription:
                 "is_valid": False,
             }
         ]
+
+    def test_prescription_list_401(self):
+        """The endpoint should be under authentication."""
+        response = APIClient().get(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @freeze_time("2022-07-20")
     def test_prescription_detail(self):
@@ -415,6 +425,11 @@ class TestNurse:
                 "city": "Pontoise",
             }
         ]
+
+    def test_nurse_list_401(self):
+        """The endpoint should be under authentication."""
+        response = APIClient().get(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_nurse_detail(self):
         user = User.objects.get()

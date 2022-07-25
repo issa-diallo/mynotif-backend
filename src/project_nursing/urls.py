@@ -20,6 +20,7 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view as drf_yasg_get_schema_view
 from rest_framework import permissions, routers
 from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.permissions import AllowAny
 from rest_framework.schemas import get_schema_view
 
 from nurse import views as nurse_views
@@ -51,7 +52,12 @@ urlpatterns = [
     path("", include(router.urls)),
     path(
         "openapi",
-        get_schema_view(title=title, description=description, version=version),
+        get_schema_view(
+            title=title,
+            description=description,
+            version=version,
+            permission_classes=[AllowAny],
+        ),
         name="openapi-schema",
     ),
     re_path(
