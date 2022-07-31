@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath src project_nursing.wsgi
+web: gunicorn --pythonpath src main.wsgi
