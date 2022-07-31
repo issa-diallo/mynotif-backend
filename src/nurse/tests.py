@@ -84,17 +84,17 @@ patient_data = {
 class TestPatient:
 
     client = APIClient()
+    user = None
 
     url = reverse_lazy("patient-list")
 
     data = patient_data
-
     username = "username1"
     password = "password1"
 
     def setup_method(self, method):
         """Creates a user and authenticates it via token."""
-        authenticate(self.client, self.username, self.password)
+        self.user = authenticate(self.client, self.username, self.password)
 
     def teardown_method(self, method):
         """Invalidate credentials."""
@@ -104,6 +104,7 @@ class TestPatient:
         assert self.url == "/patient/"
 
     def test_create_patient(self):
+        """Creating a patient should link it with the authenticated nurse."""
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert Patient.objects.count() == 1
@@ -113,12 +114,17 @@ class TestPatient:
         assert patient.address == "3 place du cerdan"
         assert patient.zip_code == "95400"
         assert patient.city == "courdimanche"
+        # the patient is linked to the authenticated nurse
+        nurse_set = patient.nurse_set
+        assert nurse_set.count() == 1
+        nurse_set.all().get().user == self.user
 
-    # TODO: this should be authenticated users only
     @freeze_time("2022-08-11")
     @override_settings(AWS_ACCESS_KEY_ID="testing")
     def test_patient_list(self):
         patient = Patient.objects.create(**self.data)
+        nurse, _ = Nurse.objects.get_or_create(user=self.user)
+        patient.nurse_set.add(nurse)
         # note that we create 3 prescriptions, but only the last two should show up
         Prescription.objects.create(**{**prescription_data, **{"patient": patient}})
         Prescription.objects.create(
@@ -187,7 +193,9 @@ class TestPatient:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_patient_detail(self):
-        Patient.objects.create(**self.data)
+        patient = Patient.objects.create(**self.data)
+        nurse, _ = Nurse.objects.get_or_create(user=self.user)
+        patient.nurse_set.add(nurse)
         response = self.client.get(reverse_lazy("patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
@@ -202,7 +210,9 @@ class TestPatient:
         }
 
     def test_patient_delete(self):
-        Patient.objects.create(**self.data)
+        patient = Patient.objects.create(**self.data)
+        nurse, _ = Nurse.objects.get_or_create(user=self.user)
+        patient.nurse_set.add(nurse)
         response = self.client.delete(reverse_lazy("patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None

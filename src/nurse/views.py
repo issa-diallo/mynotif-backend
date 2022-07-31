@@ -19,18 +19,31 @@ class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
 
+    def get_queryset(self):
+        """Only the patients associated to the logged in nurse."""
+        queryset = self.queryset
+        nurse, _ = Nurse.objects.get_or_create(user=self.request.user)
+        queryset = queryset.filter(nurse=nurse)
+        return queryset
+
+    def create(self, request):
+        nurse, _ = Nurse.objects.get_or_create(user=self.request.user)
+        response = super().create(request)
+        patient = Patient.objects.get(id=response.data["id"])
+        patient.nurse_set.add(nurse)
+        return response
+
 
 class PrescriptionViewSet(viewsets.ModelViewSet):
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
 
     def get_queryset(self):
+        """Only the prescriptions associated to the logged in nurse."""
         queryset = self.queryset
-        nurse, _ = Nurse.objects.get_or_create(
-            user=self.request.user,
-        )
-        query_set = queryset.filter(patient__nurse=nurse)
-        return query_set
+        nurse, _ = Nurse.objects.get_or_create(user=self.request.user)
+        queryset = queryset.filter(patient__nurse=nurse)
+        return queryset
 
 
 class PrescriptionFileView(generics.UpdateAPIView):
@@ -81,7 +94,5 @@ class UserCreate(generics.CreateAPIView):
         response = super().post(request, *args, **kwargs)
         username = response.data["username"]
         user = User.objects.get(username=username)
-        Nurse.objects.get_or_create(
-            user=user,
-        )
+        Nurse.objects.get_or_create(user=user)
         return response
