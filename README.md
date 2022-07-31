@@ -18,12 +18,12 @@ cp .env.example .env
 
 ## :tada: run
 ```sh
-python3 src/project_nursing/manage.py runserver
+python3 src/main/manage.py runserver
 ```
 
 ## :test_tube: test
 ```
-pytest src/project_nursing/tests.py src/nurse/tests.py
+pytest src/main/tests.py src/nurse/tests.py
 ```
 
 ### :rotating_light: linting

@@ -15,4 +15,4 @@ jobs:
       - run: flake8 src/
       - run: black --check src/
       - run: isort --check --diff src/
-      - run: pytest src/project_nursing/tests.py src/nurse/tests.py
+      - run: pytest src/main/tests.py src/nurse/tests.py
