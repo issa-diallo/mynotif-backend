@@ -19,7 +19,7 @@ router.register("user", UserViewSet)
 urlpatterns = [
     path("profile/", ProfileView.as_view(), name="profile"),
     path(
-        "prescription/upload/<int:pk>",
+        "prescription/upload/<int:pk>/",
         PrescriptionFileView.as_view(),
         name="prescription-upload",
     ),
