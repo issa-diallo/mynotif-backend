@@ -4,3 +4,11 @@ __pycache__
 db.sqlite3
 venv
 *.egg-info
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+**/.terraform.lock.hcl
