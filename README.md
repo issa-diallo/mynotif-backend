@@ -4,9 +4,9 @@
 
 ## URLs
 
-- :tada: https://mynotif-api.herokuapp.com/
-- :memo: https://mynotif-api.herokuapp.com/swagger/
-- :memo: https://mynotif-api.herokuapp.com/redoc/
+- :tada: https://mynotif-api.vercel.app/
+- :memo: https://mynotif-api.vercel.app/swagger/
+- :memo: https://mynotif-api.vercel.app/redoc/
 - :goal_net: https://sentry.io/organizations/andre-5t/issues/3096848907/?project=6257099
 
 ## Install

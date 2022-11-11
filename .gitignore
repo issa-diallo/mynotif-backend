@@ -3,6 +3,7 @@ __pycache__
 .env
 db.sqlite3
 venv
+.vercel
 *.egg-info
 
 # Local .terraform directories

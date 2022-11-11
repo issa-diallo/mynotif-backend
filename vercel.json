@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "env": {
+    "PRODUCTION": "1"
+  },
+  "builds": [
+    {
+      "src": "src/main/wsgi.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "30mb", "runtime": "python3.9" }
+    },
+    {
+      "src": "build_files.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "src/staticfiles"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "gsrc/main/wsgi.py"
+    }
+  ]
+}

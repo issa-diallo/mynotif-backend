@@ -31,7 +31,7 @@ virtualenv/test: virtualenv
 
 requirements.txt: | $(VIRTUAL_ENV)
 	$(PYTHON) -m pip install --upgrade pip-tools
-	$(PIP_COMPILE) --upgrade --output-file requirements.txt requirements.in
+	$(PIP_COMPILE) --upgrade --output-file requirements.txt
 
 clean:
 	rm -rf venv/ .pytest_cache/
@@ -61,10 +61,10 @@ format: format/isort format/black
 test: unittest lint
 
 run/collectstatic: virtualenv
-	$(PYTHON) manage.py collectstatic --noinput
+	$(PYTHON) src/manage.py collectstatic --noinput
 
 run/migrate: virtualenv
-	$(PYTHON) manage.py migrate --noinput
+	$(PYTHON) src/manage.py migrate --noinput
 
 run/dev: virtualenv
-	$(PYTHON) manage.py runserver
+	$(PYTHON) src/manage.py runserver

@@ -14,3 +14,6 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings")
 
 application = get_wsgi_application()
+# as expected by Vercel, refs:
+# https://vercel.com/docs/runtimes#advanced-usage/advanced-python-usage
+app = application
