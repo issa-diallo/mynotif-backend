@@ -11,8 +11,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - run: pip install -e .[dev]
-      - run: flake8 src/
-      - run: black --check src/
-      - run: isort --check --diff src/
-      - run: pytest src/main/tests.py src/nurse/tests.py
+      - run: make virtualenv/test
+      - run: make lint
+      - run: make unittest
