@@ -13,7 +13,6 @@ import json
 import os
 from pathlib import Path
 
-import django_on_heroku
 import sentry_sdk
 from dotenv import load_dotenv
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -33,7 +32,7 @@ SECRET_KEY = "django-insecure-gmzzy_phk&y296hn9k&@st$@^4)_wz1ssaz0y0l@ck8xa=mda*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not bool(os.environ.get("PRODUCTION"))
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "mynotif-api.herokuapp.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 
 # Application definition
@@ -49,7 +48,6 @@ INSTALLED_APPS = [
     "nurse",
     "rest_framework",
     "rest_framework.authtoken",
-    "django_on_heroku",
     "django_extensions",
     "corsheaders",
 ]
@@ -184,6 +182,3 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
     )
-
-if not DEBUG:
-    django_on_heroku.settings(locals())
