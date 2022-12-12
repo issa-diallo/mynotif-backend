@@ -25,13 +25,13 @@ make run/dev
 make unittest
 ```
 
-### :rotating_light: linting
+## :rotating_light: linting
 ```sh
 make lint
 make format
 ```
 
-### Requirements bump
+## Requirements bump
 ```sh
 make -B requirements.txt
 ```
@@ -39,9 +39,10 @@ The project has automated handling of production requirements, the idea behind i
 you should always use the latest versions of every requirement.
 `pip-compile` is used to handle it.
 
-### DEBUG
+## Docker
 ```sh
-import pdb; pdb.set_trace()
+make docker/build
+make docker/run
 ```
 
 ## Learn More
