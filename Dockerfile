@@ -11,9 +11,9 @@ RUN apt update \
     && apt clean
 
 COPY Makefile requirements.txt /app/
-
 RUN make virtualenv
 COPY src /app/src
+RUN make run/collectstatic
 
 CMD ["make", "run/prod"]
 EXPOSE ${PORT}
