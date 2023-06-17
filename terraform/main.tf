@@ -13,10 +13,18 @@ provider "aws" {
   region = var.aws_region
   # Role to assume for AWS operations
   assume_role {
-    role_arn = "arn:aws:iam::332944743618:role/mynotif-deployment-automation-role"
+    role_arn = var.role_arn
   }
 }
 
+provider "aws" {
+  alias  = "app_runner"
+  region = var.app_runner_region
+  # Role to assume for AWS operations
+  assume_role {
+    role_arn = var.role_arn
+  }
+}
 
 # You cannot create a new backend by simply defining this and then
 # immediately proceeding to "terraform apply". The S3 backend must
