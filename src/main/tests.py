@@ -7,7 +7,6 @@ from rest_framework.test import APIClient
 
 
 class TestDocumentation:
-
     client = Client()
     url_redoc = "/redoc/"
     url_swagger = "/swagger/"
@@ -24,7 +23,6 @@ class TestDocumentation:
 
 
 class TestApiTokenAuth:
-
     client = APIClient()
     url = "/api-token-auth/"
 

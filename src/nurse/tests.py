@@ -82,7 +82,6 @@ patient_data = {
 
 @pytest.mark.django_db
 class TestPatient:
-
     client = APIClient()
     user = None
 
@@ -221,7 +220,6 @@ class TestPatient:
 
 @pytest.mark.django_db
 class TestPrescription:
-
     client = APIClient()
     user = None
 
@@ -367,7 +365,6 @@ class TestPrescription:
 
 @pytest.mark.django_db
 class TestNurse:
-
     client = APIClient()
 
     url = reverse_lazy("nurse-list")
@@ -465,7 +462,6 @@ class TestNurse:
 
 @pytest.mark.django_db
 class TestUser:
-
     client = APIClient()
 
     url = reverse_lazy("user-list")
@@ -709,7 +705,6 @@ class TestAccountRegister:
 
 @pytest.mark.django_db
 class TestProfile:
-
     client = APIClient()
 
     url = "/profile/"
