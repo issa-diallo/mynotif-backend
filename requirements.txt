@@ -16,7 +16,7 @@ botocore==1.29.155
     #   s3transfer
 certifi==2023.5.7
     # via sentry-sdk
-django==3.2.19
+django==4.2.2
     # via
     #   django-cors-headers
     #   django-extensions
@@ -59,9 +59,7 @@ python-dateutil==2.8.2
 python-dotenv==1.0.0
     # via mynotif (setup.py)
 pytz==2023.3
-    # via
-    #   django
-    #   djangorestframework
+    # via djangorestframework
 pyyaml==6.0
     # via
     #   drf-spectacular
