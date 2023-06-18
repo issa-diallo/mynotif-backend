@@ -22,6 +22,13 @@ resource "aws_apprunner_service" "backend" {
           CORS_ALLOWED_ORIGINS = jsonencode(var.env_cors_allowed_origins)
           PRODUCTION           = var.env_production
           SENTRY_DSN           = data.aws_ssm_parameter.sentry_dsn.value
+          # Database
+          DATABASE_ENGINE   = var.env_database_engine
+          DATABASE_NAME     = data.aws_ssm_parameter.database_name.value
+          DATABASE_USER     = data.aws_ssm_parameter.database_user.value
+          DATABASE_PASSWORD = data.aws_ssm_parameter.database_password.value
+          DATABASE_HOST     = data.aws_ssm_parameter.database_host.value
+          DATABASE_PORT     = var.env_database_port
         }
       }
       image_repository_type = "ECR"
