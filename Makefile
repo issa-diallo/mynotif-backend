@@ -118,6 +118,9 @@ devops/aws/assume-role:
 	$(eval export AWS_SECRET_ACCESS_KEY=$(word 2, $(CREDENTIALS)))
 	$(eval export AWS_SESSION_TOKEN=$(word 3, $(CREDENTIALS)))
 
+devops/terraform/init:
+	terraform -chdir=terraform init
+
 devops/terraform/plan:
 	terraform -chdir=terraform plan
 
