@@ -40,6 +40,19 @@ variable "env_allowed_hosts" {
   ]
 }
 
+# Database
+variable "env_database_engine" {
+  type        = string
+  description = "https://docs.djangoproject.com/en/3.2/ref/settings/#engine"
+  default     = "django.db.backends.postgresql"
+}
+
+variable "env_database_port" {
+  type        = number
+  description = "https://docs.djangoproject.com/en/3.2/ref/settings/#port"
+  default     = 5432
+}
+
 variable "env_cors_allowed_origins" {
   type        = list(string)
   description = "https://github.com/adamchainz/django-cors-headers"
