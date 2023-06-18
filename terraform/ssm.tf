@@ -18,3 +18,12 @@ data "aws_ssm_parameter" "database_password" {
 data "aws_ssm_parameter" "database_host" {
   name = "${var.app_name}-database-host-${var.environment}"
 }
+
+# S3
+data "aws_ssm_parameter" "aws_access_key_id" {
+  name = "${var.app_name}-aws-access-key-id-${var.environment}"
+}
+
+data "aws_ssm_parameter" "aws_secret_access_key" {
+  name = "${var.app_name}-aws-secret-access-key-${var.environment}"
+}
