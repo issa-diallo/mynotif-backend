@@ -29,6 +29,9 @@ resource "aws_apprunner_service" "backend" {
           DATABASE_PASSWORD = data.aws_ssm_parameter.database_password.value
           DATABASE_HOST     = data.aws_ssm_parameter.database_host.value
           DATABASE_PORT     = var.env_database_port
+          # S3
+          AWS_ACCESS_KEY_ID     = data.aws_ssm_parameter.aws_access_key_id.value
+          AWS_SECRET_ACCESS_KEY = data.aws_ssm_parameter.aws_secret_access_key.value
         }
       }
       image_repository_type = "ECR"
