@@ -1,0 +1,54 @@
+name: Deployment
+
+on:
+  workflow_dispatch:
+  push:
+
+# prevents error acquiring Terraform's state lock
+concurrency: deployment
+
+env:
+  PRODUCTION_REF: refs/heads/main
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-3
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-duration-seconds: 1200
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      # so we can leverage caching during the build phase
+      - run: make docker/pull || true
+      - run: make docker/build
+      - name: docker push
+        if: github.ref == env.PRODUCTION_REF
+        run: make docker/push
+  terraform:
+    runs-on: ubuntu-latest
+    needs: docker
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+      - run: make devops/terraform/init
+      # Checks that all Terraform configuration files adhere to a canonical format
+      - run: make lint/terraform
+      # Generates an execution plan for Terraform
+      - run: make devops/terraform/plan
+      - name: Terraform Apply
+        if: github.ref == env.PRODUCTION_REF
+        run: make devops/terraform/apply

@@ -1,12 +1,13 @@
-# MyNotif with Django
+# MyNotif backend
 
-[![Tests](https://github.com/issa-diallo/Mynotif_backend/actions/workflows/tests.yml/badge.svg)](https://github.com/issa-diallo/Mynotif_backend/actions/workflows/tests.yml)
+[![Tests](https://github.com/mynotif/mynotif-backend/actions/workflows/tests.yml/badge.svg)](https://github.com/mynotif/mynotif-backend/actions/workflows/tests.yml)
+[![Deployment](https://github.com/mynotif/mynotif-backend/actions/workflows/deployment.yml/badge.svg)](https://github.com/mynotif/mynotif-backend/actions/workflows/deployment.yml)
 
 ## URLs
 
-- :tada: https://mynotif-api.herokuapp.com/
-- :memo: https://mynotif-api.herokuapp.com/swagger/
-- :memo: https://mynotif-api.herokuapp.com/redoc/
+- :tada: https://api.mynotif.fr/
+- :memo: https://api.mynotif.fr/swagger/
+- :memo: https://api.mynotif.fr/redoc/
 - :goal_net: https://sentry.io/organizations/andre-5t/issues/3096848907/?project=6257099
 
 ## Install
