@@ -61,6 +61,7 @@ variable "env_cors_allowed_origins" {
     "http://localhost:8000",
     "https://mynotif.herokuapp.com",
     "https://mynotif.vercel.app",
+    "https://delicate-pie-15d2c7.netlify.app",
   ]
 }
 
