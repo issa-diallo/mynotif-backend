@@ -137,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = os.environ.get("TIME_ZONE", "UTC")
 
 USE_I18N = True
 
@@ -159,8 +159,10 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = json.loads(os.environ.get("CORS_ALLOWED_ORIGINS", "[]"))
-# Vercel dynamic previews
-CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://mynotif-git-[\w-]+-issa-diallo\.vercel\.app$"]
+# Vercel & Netlify dynamic previews
+CORS_ALLOWED_ORIGIN_REGEXES = json.loads(
+    os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES", "[]")
+)
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
