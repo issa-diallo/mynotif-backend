@@ -18,10 +18,12 @@ resource "aws_apprunner_service" "backend" {
       image_configuration {
         port = "8000"
         runtime_environment_variables = {
-          ALLOWED_HOSTS        = jsonencode(var.env_allowed_hosts)
-          CORS_ALLOWED_ORIGINS = jsonencode(var.env_cors_allowed_origins)
-          PRODUCTION           = var.env_production
-          SENTRY_DSN           = data.aws_ssm_parameter.sentry_dsn.value
+          TIME_ZONE                   = var.env_time_zone
+          ALLOWED_HOSTS               = jsonencode(var.env_allowed_hosts)
+          CORS_ALLOWED_ORIGINS        = jsonencode(var.env_cors_allowed_origins)
+          CORS_ALLOWED_ORIGIN_REGEXES = jsonencode(var.env_cors_allowed_origin_regexes)
+          PRODUCTION                  = var.env_production
+          SENTRY_DSN                  = data.aws_ssm_parameter.sentry_dsn.value
           # Database
           DATABASE_ENGINE   = var.env_database_engine
           DATABASE_NAME     = data.aws_ssm_parameter.database_name.value

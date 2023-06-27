@@ -1,25 +1,26 @@
-FROM python:3.11-slim as base
-
-ARG PORT=8000
-ENV PORT ${PORT}
+FROM python:3.11-alpine as base
 
 WORKDIR /app
 
-RUN apt update \
-    && apt --yes --no-install-recommends install \
-    make \
-    && apt clean
+RUN apk add --update --no-cache \
+    make
 
 COPY Makefile requirements.txt /app/
 RUN make virtualenv
 COPY src /app/src
 RUN make run/collectstatic
 
+
 FROM python:3.11-alpine
+
+ARG PORT=8000
+ENV PORT ${PORT}
+ENV PYTHONUNBUFFERED=1
 WORKDIR /app
+
 COPY --from=base /app/venv/ /app/venv/
 COPY src /app/src
 COPY --from=base /app/src/staticfiles/ /app/src/staticfiles/
 
-CMD ["/app/venv/bin/gunicorn", "--chdir", "src", "--bind", "0.0.0.0:8000", "main.wsgi"]
+CMD ["sh", "-c", "/app/venv/bin/gunicorn --chdir src --bind 0.0.0.0:${PORT} main.wsgi"]
 EXPOSE ${PORT}

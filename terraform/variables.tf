@@ -53,6 +53,12 @@ variable "env_database_port" {
   default     = 5432
 }
 
+variable "env_time_zone" {
+  type        = string
+  description = "https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-TIME_ZONE"
+  default     = "Europe/Paris"
+}
+
 variable "env_cors_allowed_origins" {
   type        = list(string)
   description = "https://github.com/adamchainz/django-cors-headers"
@@ -62,6 +68,15 @@ variable "env_cors_allowed_origins" {
     "https://mynotif.herokuapp.com",
     "https://mynotif.vercel.app",
     "https://mynotif.netlify.app",
+  ]
+}
+
+variable "env_cors_allowed_origin_regexes" {
+  type        = list(string)
+  description = "https://github.com/adamchainz/django-cors-headers"
+  default = [
+    "^https://mynotif-git-[\\w-]+-issa-diallo\\.vercel\\.app$",
+    "^https://deploy-preview-\\d+--mynotif\\.netlify\\.app$",
   ]
 }
 

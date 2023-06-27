@@ -97,10 +97,10 @@ docker/build:
 	docker build --build-arg PORT=$(PORT) --tag=$(DOCKER_IMAGE):$(IMAGE_TAG) .
 
 docker/run:
-	docker run -it --publish $(PORT):$(PORT) --rm $(DOCKER_IMAGE):$(IMAGE_TAG)
+	docker run -it --env-file .env --publish $(PORT):$(PORT) --rm $(DOCKER_IMAGE):$(IMAGE_TAG)
 
 docker/run/sh:
-	docker run -it --rm $(DOCKER_IMAGE):$(IMAGE_TAG) sh
+	docker run -it --env-file .env --rm $(DOCKER_IMAGE):$(IMAGE_TAG) sh
 
 docker/login: devops/aws/assume-role
 	aws ecr get-login-password --region $(REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com
