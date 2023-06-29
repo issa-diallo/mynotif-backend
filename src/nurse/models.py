@@ -5,15 +5,15 @@ from django.db import models
 
 
 def make_phone_field():
-    return models.CharField(max_length=30, blank=False)
+    return models.CharField(max_length=30, null=True, blank=True)
 
 
 class Patient(models.Model):
     firstname = models.CharField(max_length=30, blank=False)
     lastname = models.CharField(max_length=30, blank=False)
-    address = models.CharField(max_length=300, blank=False)
-    zip_code = models.CharField(blank=False, max_length=5)
-    city = models.CharField(max_length=300, blank=False)
+    address = models.CharField(max_length=300, null=True, blank=True)
+    zip_code = models.CharField(max_length=5, null=True, blank=True)
+    city = models.CharField(max_length=300, null=True, blank=True)
     phone = make_phone_field()
 
     def __str__(self):
