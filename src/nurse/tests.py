@@ -647,23 +647,23 @@ class TestUser:
 class TestAccountRegister:
     client = APIClient()
     url = reverse_lazy("register")
-    username = {"username": "username1"}
+    email = {"email": "test@example.com"}
     password = {"password": "password1"}
-    data = {**username, **password}
+    data = {**email, **password}
 
     def test_url(self):
         assert self.url == "/account/register"
 
     @freeze_time("2021-01-16 16:00:00")
     def test_create(self):
-        assert User.objects.filter(**self.username).count() == 0
+        assert User.objects.filter(**self.email).count() == 0
         response = self.client.post(self.url, self.data, format="json")
         assert response.json() == {
             "id": 1,
-            "username": "username1",
+            "username": "",
             "first_name": "",
             "last_name": "",
-            "email": "",
+            "email": "test@example.com",
             "is_staff": False,
             "nurse": {
                 "id": 1,
@@ -676,23 +676,23 @@ class TestAccountRegister:
             },
         }
         assert response.status_code == status.HTTP_201_CREATED
-        users = User.objects.filter(**self.username)
+        users = User.objects.filter(**self.email)
         assert users.count() == 1
         user = users.get()
         assert user.check_password(self.password["password"]) is True
         assert user.nurse is not None
 
     def test_create_already_exists(self):
-        assert User.objects.filter(**self.username).count() == 0
+        assert User.objects.filter(**self.email).count() == 0
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        assert User.objects.filter(**self.username).count() == 1
+        assert User.objects.filter(**self.email).count() == 1
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert (
-            response.data["username"][0] == "A user with that username already exists."
+            response.data["email"][0] == "A user with that email address already exists"
         )
-        assert User.objects.filter(**self.username).count() == 1
+        assert User.objects.filter(**self.email).count() == 1
 
     def test_get(self):
         """It's not allowed to list all users."""
@@ -704,7 +704,7 @@ class TestAccountRegister:
         """Note this isn't a REST endpoint."""
         url = reverse_lazy("rest_framework:login")
         assert url == "/account/login/"
-        user = User.objects.create(**self.username)
+        user = User.objects.create(**self.email)
         user.set_password(self.password["password"])
         user.save()
         response = self.client.post(url, self.data)
