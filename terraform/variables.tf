@@ -40,6 +40,16 @@ variable "env_allowed_hosts" {
   ]
 }
 
+variable "env_csrf_trusted_origins" {
+  type        = list(string)
+  description = "https://docs.djangoproject.com/en/4.2/ref/settings/#csrf-trusted-origins"
+  default = [
+    "http://127.0.0.1",
+    "http://localhost",
+    "https://*.eu-central-1.awsapprunner.com",
+  ]
+}
+
 # Database
 variable "env_database_engine" {
   type        = string
@@ -81,9 +91,9 @@ variable "env_cors_allowed_origin_regexes" {
 }
 
 variable "env_production" {
-  type        = number
-  description = "Set to 1 for production, 0 otherwise"
-  default     = 1
+  type        = string
+  description = "Set to 1 or true for production, 0 or false otherwise"
+  default     = "true"
 }
 
 locals {

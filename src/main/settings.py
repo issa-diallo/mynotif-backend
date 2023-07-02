@@ -30,10 +30,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-gmzzy_phk&y296hn9k&@st$@^4)_wz1ssaz0y0l@ck8xa=mda*"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = not bool(os.environ.get("PRODUCTION"))
+DEBUG = not bool(json.loads(os.environ.get("PRODUCTION", "0")))
 
 ALLOWED_HOSTS = json.loads(
     os.environ.get("ALLOWED_HOSTS", '["127.0.0.1", "localhost"]')
+)
+# https://docs.djangoproject.com/en/4.2/releases/4.0/#csrf-trusted-origins-changes
+CSRF_TRUSTED_ORIGINS = json.loads(
+    os.environ.get("CSRF_TRUSTED_ORIGINS", '["http://127.0.0.1", "http://localhost"]')
 )
 
 

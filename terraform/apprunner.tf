@@ -20,6 +20,7 @@ resource "aws_apprunner_service" "backend" {
         runtime_environment_variables = {
           TIME_ZONE                   = var.env_time_zone
           ALLOWED_HOSTS               = jsonencode(var.env_allowed_hosts)
+          CSRF_TRUSTED_ORIGINS        = jsonencode(var.env_csrf_trusted_origins)
           CORS_ALLOWED_ORIGINS        = jsonencode(var.env_cors_allowed_origins)
           CORS_ALLOWED_ORIGIN_REGEXES = jsonencode(var.env_cors_allowed_origin_regexes)
           PRODUCTION                  = var.env_production
