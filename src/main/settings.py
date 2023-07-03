@@ -43,20 +43,26 @@ CSRF_TRUSTED_ORIGINS = json.loads(
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_CORE_APP = (
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
-    "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.sessions",
     "django.contrib.staticfiles",
+)
+
+THIRDPARTY_APP = (
+    "corsheaders",
+    "django_extensions",
     "drf_spectacular",
-    "nurse",
     "rest_framework",
     "rest_framework.authtoken",
-    "django_extensions",
-    "corsheaders",
-]
+)
+
+CUSTOM_APPS = ("nurse",)
+
+INSTALLED_APPS = DJANGO_CORE_APP + THIRDPARTY_APP + CUSTOM_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
