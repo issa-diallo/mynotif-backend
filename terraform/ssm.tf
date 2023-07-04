@@ -19,6 +19,19 @@ data "aws_ssm_parameter" "database_host" {
   name = "${var.app_name}-database-host-${var.environment}"
 }
 
+# Email
+data "aws_ssm_parameter" "email_host" {
+  name = "${var.app_name}-email-host-${var.environment}"
+}
+
+data "aws_ssm_parameter" "email_host_user" {
+  name = "${var.app_name}-email-host-user-${var.environment}"
+}
+
+data "aws_ssm_parameter" "email_host_password" {
+  name = "${var.app_name}-email-host-password-${var.environment}"
+}
+
 # S3
 data "aws_ssm_parameter" "aws_access_key_id" {
   name = "${var.app_name}-aws-access-key-id-${var.environment}"

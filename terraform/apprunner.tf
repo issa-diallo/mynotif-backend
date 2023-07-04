@@ -32,9 +32,19 @@ resource "aws_apprunner_service" "backend" {
           DATABASE_PASSWORD = data.aws_ssm_parameter.database_password.value
           DATABASE_HOST     = data.aws_ssm_parameter.database_host.value
           DATABASE_PORT     = var.env_database_port
+          # Email
+          EMAIL_USE_SSL       = var.env_email_use_ssl
+          EMAIL_HOST          = data.aws_ssm_parameter.email_host.value
+          EMAIL_PORT          = var.env_email_port
+          EMAIL_HOST_USER     = data.aws_ssm_parameter.email_host_user.value
+          EMAIL_HOST_PASSWORD = data.aws_ssm_parameter.email_host_password.value
           # S3
           AWS_ACCESS_KEY_ID     = data.aws_ssm_parameter.aws_access_key_id.value
           AWS_SECRET_ACCESS_KEY = data.aws_ssm_parameter.aws_secret_access_key.value
+          # Djoser
+          PASSWORD_RESET_CONFIRM_URL = var.env_password_reset_confirm_url
+          TEMPLATED_MAIL_DOMAIN      = var.env_templated_mail_domain
+          TEMPLATED_SITE_NAME        = var.env_templated_site_name
         }
       }
       image_repository_type = "ECR"

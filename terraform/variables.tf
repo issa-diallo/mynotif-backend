@@ -63,6 +63,18 @@ variable "env_database_port" {
   default     = 5432
 }
 
+variable "env_email_use_ssl" {
+  type        = string
+  description = "https://docs.djangoproject.com/en/4.2/ref/settings/#email-use-ssl"
+  default     = "true"
+}
+
+variable "env_email_port" {
+  type        = number
+  description = "https://docs.djangoproject.com/en/4.2/ref/settings/#email-use-ssl"
+  default     = 465
+}
+
 variable "env_time_zone" {
   type        = string
   description = "https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-TIME_ZONE"
@@ -94,6 +106,21 @@ variable "env_production" {
   type        = string
   description = "Set to 1 or true for production, 0 or false otherwise"
   default     = "true"
+}
+
+variable "env_password_reset_confirm_url" {
+  type    = string
+  default = "reset/password/{uid}/{token}"
+}
+
+variable "env_templated_mail_domain" {
+  type    = string
+  default = "mynotif.netlify.app"
+}
+
+variable "env_templated_site_name" {
+  type    = string
+  default = "MyNotif"
 }
 
 locals {

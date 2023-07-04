@@ -55,6 +55,7 @@ DJANGO_CORE_APP = (
 THIRDPARTY_APP = (
     "corsheaders",
     "django_extensions",
+    "djoser",
     "drf_spectacular",
     "rest_framework",
     "rest_framework.authtoken",
@@ -196,6 +197,24 @@ AWS_STORAGE_BUCKET_NAME = "mynotif-prescription"
 AWS_S3_REGION_NAME = "eu-west-3"
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+
+# Email configuration
+bool(json.loads(os.environ.get("PRODUCTION", "0")))
+EMAIL_USE_TLS = bool(json.loads(os.environ.get("EMAIL_USE_TLS", "0")))
+EMAIL_USE_SSL = bool(json.loads(os.environ.get("EMAIL_USE_SSL", "0")))
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
+EMAIL_PORT = json.loads(os.environ.get("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+
+# Djoser
+DJOSER = {
+    "PASSWORD_RESET_CONFIRM_URL": os.environ.get("PASSWORD_RESET_CONFIRM_URL"),
+}
+
+# django-templated-mail
+DOMAIN = os.environ.get("TEMPLATED_MAIL_DOMAIN", "")
+SITE_NAME = os.environ.get("TEMPLATED_SITE_NAME", "")
 
 if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
     sentry_sdk.init(
