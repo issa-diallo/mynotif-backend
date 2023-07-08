@@ -118,6 +118,24 @@ class TestPatient:
         assert nurse_set.count() == 1
         nurse_set.all().get().user == self.user
 
+    def test_create_minimal_patient(self):
+        """It should be possible to create a patient with only his fullname."""
+        data = {
+            "firstname": "John",
+            "lastname": "Leen",
+        }
+        assert Patient.objects.count() == 0
+        response = self.client.post(self.url, data, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Patient.objects.count() == 1
+        patient = Patient.objects.get()
+        assert patient.firstname == "John"
+        assert patient.lastname == "Leen"
+        assert patient.phone == ""
+        assert patient.address == ""
+        assert patient.zip_code == ""
+        assert patient.city == ""
+
     @freeze_time("2022-08-11")
     @override_settings(AWS_ACCESS_KEY_ID="testing")
     def test_patient_list(self):
