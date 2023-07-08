@@ -33,6 +33,24 @@ jobs:
       - name: docker push
         if: github.ref == env.PRODUCTION_REF
         run: make docker/push
+  migrations:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_ENGINE: django.db.backends.postgresql
+      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+      DATABASE_USER: ${{ secrets.DATABASE_USER }}
+      DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      DATABASE_PORT: 5432
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+      - run: make run/migrations/check
+      - name: Migrations Apply
+        if: github.ref == env.PRODUCTION_REF
+        run: make run/migrations/apply
   terraform:
     runs-on: ubuntu-latest
     needs: docker

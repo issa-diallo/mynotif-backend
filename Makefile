@@ -57,13 +57,13 @@ lint/flake8:
 lint/black:
 	$(BLACK) --check $(SOURCES)
 
-lint/nodeprettier:
-	$(NODE_PRETTIER) --check *.md .github/
-
 lint/terraform:
 	terraform -chdir=terraform fmt -recursive -diff -check
 
-lint: lint/isort lint/flake8 lint/black lint/terraform
+lint/nodeprettier:
+	$(NODE_PRETTIER) --check *.md .github/
+
+lint: lint/isort lint/flake8 lint/black lint/terraform lint/nodeprettier
 
 format/isort:
 	$(ISORT) $(SOURCES)
@@ -84,7 +84,13 @@ test: unittest lint
 run/collectstatic: virtualenv
 	$(PYTHON) src/manage.py collectstatic --noinput
 
-run/migrate: virtualenv
+run/migrations/create: virtualenv
+	$(PYTHON) src/manage.py makemigrations
+
+run/migrations/check: virtualenv
+	$(PYTHON) src/manage.py makemigrations --check
+
+run/migrations/apply: virtualenv
 	$(PYTHON) src/manage.py migrate --noinput
 
 run/dev: virtualenv
