@@ -50,7 +50,6 @@ class Migration(migrations.Migration):
                 ("prescribing_doctor", models.CharField(max_length=300)),
                 ("start_date", models.DateField()),
                 ("end_date", models.DateField()),
-                ("at_renew", models.BooleanField()),
                 ("photo_prescription", models.CharField(max_length=300)),
                 (
                     "patient",

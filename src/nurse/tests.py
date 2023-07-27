@@ -67,7 +67,6 @@ prescription_data = {
     "prescribing_doctor": "Dr Leen",
     "start_date": "2022-07-15",
     "end_date": "2022-07-31",
-    "at_renew": 1,
 }
 
 patient_data = {
@@ -187,7 +186,6 @@ class TestPatient:
                     "prescribing_doctor": "Dr Leen",
                     "start_date": "2022-08-10",
                     "end_date": "2022-08-20",
-                    "at_renew": 1,
                     "photo_prescription": None,
                     "is_valid": True,
                 },
@@ -199,7 +197,6 @@ class TestPatient:
                     "prescribing_doctor": "Dr Leen",
                     "start_date": "2022-08-01",
                     "end_date": "2022-08-10",
-                    "at_renew": 1,
                     "photo_prescription": None,
                     "is_valid": False,
                 },
@@ -272,7 +269,6 @@ class TestPrescription:
         assert prescription.prescribing_doctor == "Dr Leen"
         assert prescription.start_date == date(2022, 7, 15)
         assert prescription.end_date == date(2022, 7, 31)
-        assert prescription.at_renew == 1
         assert prescription.photo_prescription.name == ""
 
     @freeze_time("2022-08-11")
@@ -296,7 +292,6 @@ class TestPrescription:
                 "prescribing_doctor": "Dr Leen",
                 "start_date": "2022-07-15",
                 "end_date": "2022-07-31",
-                "at_renew": 1,
                 "photo_prescription": None,
                 "patient": patient.id,
                 "is_valid": False,
@@ -329,7 +324,6 @@ class TestPrescription:
             "prescribing_doctor": "Dr Leen",
             "start_date": "2022-07-15",
             "end_date": "2022-07-31",
-            "at_renew": 1,
             "photo_prescription": None,
             "patient": patient.id,
             "is_valid": True,

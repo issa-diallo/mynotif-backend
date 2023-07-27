@@ -21,5 +21,4 @@ class PrescriptionAdmin(admin.ModelAdmin):
         "prescribing_doctor",
         "start_date",
         "end_date",
-        "at_renew",
     )
