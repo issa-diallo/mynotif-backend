@@ -17,12 +17,13 @@ from rest_framework.test import APIClient
 from .models import Nurse, Patient, Prescription
 
 
-def authenticate(client, username, password):
+def authenticate(client, email, username, password):
     """Creates a user and authenticates it via token."""
+    email_kw = {"email": email}
     username_kw = {"username": username}
     password_kw = {"password": password}
-    credentials = {**username_kw, **password_kw}
-    user = User.objects.create(**username_kw)
+    credentials = {**email_kw, **username_kw, **password_kw}
+    user = User.objects.create(**credentials)
     user.set_password(credentials["password"])
     user.save()
     # voids previous credentials to avoid "Invalid token" errors
@@ -88,12 +89,13 @@ class TestPatient:
     url = reverse_lazy("patient-list")
 
     data = patient_data
-    username = "username1"
+    email = "test1@test.com"
     password = "password1"
+    username = "username"
 
     def setup_method(self, method):
         """Creates a user and authenticates it via token."""
-        self.user = authenticate(self.client, self.username, self.password)
+        self.user = authenticate(self.client, self.email, self.username, self.password)
 
     def teardown_method(self, method):
         """Invalidate credentials."""
@@ -244,12 +246,13 @@ class TestPrescription:
     url = reverse_lazy("prescription-list")
 
     data = prescription_data
-    username = "username1"
+    email = "test1@test.com"
     password = "password1"
+    username = "username"
 
     def setup_method(self, method):
         """Creates a user and authenticates it via token."""
-        self.user = authenticate(self.client, self.username, self.password)
+        self.user = authenticate(self.client, self.email, self.username, self.password)
 
     def teardown_method(self, method):
         """Invalidate credentials."""
@@ -395,12 +398,13 @@ class TestNurse:
         "city": "Pontoise",
     }
 
-    username = "username1"
+    email = "test1@test.com"
     password = "password1"
+    username = "username"
 
     def setup_method(self, method):
         """Creates a user and authenticates it via token."""
-        authenticate(self.client, self.username, self.password)
+        authenticate(self.client, self.email, self.username, self.password)
 
     def teardown_method(self, method):
         """Invalidate credentials."""
@@ -499,12 +503,22 @@ class TestUser:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         # it should be no way to create user via this endpoint
         # even being authenticated
-        authenticate(self.client, self.data["username"], self.data["password"])
+        authenticate(
+            self.client,
+            self.data["email"],
+            self.data["username"],
+            self.data["password"],
+        )
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_list_user(self):
-        authenticate(self.client, self.data["username"], self.data["password"])
+        authenticate(
+            self.client,
+            self.data["email"],
+            self.data["username"],
+            self.data["password"],
+        )
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == [
@@ -513,7 +527,7 @@ class TestUser:
                 "username": self.data["username"],
                 "first_name": "",
                 "last_name": "",
-                "email": "",
+                "email": self.data["email"],
                 "is_staff": False,
                 "nurse": {
                     "address": "",
@@ -528,7 +542,12 @@ class TestUser:
         ]
 
     def test_detail_user(self):
-        authenticate(self.client, self.data["username"], self.data["password"])
+        authenticate(
+            self.client,
+            self.data["email"],
+            self.data["username"],
+            self.data["password"],
+        )
         response = self.client.get(reverse_lazy("user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
@@ -536,7 +555,7 @@ class TestUser:
             "username": self.data["username"],
             "first_name": "",
             "last_name": "",
-            "email": "",
+            "email": self.data["email"],
             "is_staff": False,
             "nurse": {
                 "id": 1,
@@ -572,7 +591,12 @@ class TestUser:
     )
     def test_pk_permission_denied(self, action):
         """We can only view/update/delete self user by using `pk=<not-a-number>`"""
-        authenticate(self.client, self.data["username"], self.data["password"])
+        authenticate(
+            self.client,
+            self.data["email"],
+            self.data["username"],
+            self.data["password"],
+        )
         response = action(
             self.client,
             # using a number for the pk would mean we're trying to access CRUD
@@ -588,7 +612,12 @@ class TestUser:
         )
 
     def test_update_user(self):
-        authenticate(self.client, self.data["username"], self.data["password"])
+        authenticate(
+            self.client,
+            self.data["email"],
+            self.data["username"],
+            self.data["password"],
+        )
         data = {**self.data, "first_name": "Firstname1", "last_name": "Lastname 1"}
         response = self.client.put(
             reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
@@ -612,7 +641,12 @@ class TestUser:
 
     def test_partial_update_user(self):
         """Using a patch for a partial update (not all fields)."""
-        authenticate(self.client, self.data["username"], self.data["password"])
+        authenticate(
+            self.client,
+            self.data["email"],
+            self.data["username"],
+            self.data["password"],
+        )
         data = {"first_name": "Firstname1", "last_name": "Lastname 1"}
         response = self.client.patch(
             reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
@@ -621,7 +655,7 @@ class TestUser:
         assert response.json() == {
             "id": 1,
             "username": self.data["username"],
-            "email": "",
+            "email": self.data["email"],
             "is_staff": False,
             **data,
             "nurse": {
@@ -636,7 +670,12 @@ class TestUser:
         }
 
     def test_delete_user(self):
-        authenticate(self.client, self.data["username"], self.data["password"])
+        authenticate(
+            self.client,
+            self.data["email"],
+            self.data["username"],
+            self.data["password"],
+        )
         response = self.client.delete(reverse_lazy("user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
@@ -649,7 +688,8 @@ class TestAccountRegister:
     url = reverse_lazy("register")
     username = {"username": "username1"}
     password = {"password": "password1"}
-    data = {**username, **password}
+    email = {"email": "test1@test.com"}
+    data = {**username, **password, **email}
 
     def test_url(self):
         assert self.url == "/account/register"
@@ -663,7 +703,7 @@ class TestAccountRegister:
             "username": "username1",
             "first_name": "",
             "last_name": "",
-            "email": "",
+            "email": self.data["email"],
             "is_staff": False,
             "nurse": {
                 "id": 1,
@@ -727,22 +767,23 @@ class TestProfile:
 
     url = "/profile/"
 
-    username = "username1"
+    email = "test1@test.com"
     password = "password1"
+    username = "username"
 
     def test_endpoint(self):
         assert self.url == reverse_lazy("profile")
 
     def test_get(self):
-        authenticate(self.client, self.username, self.password)
+        authenticate(self.client, self.email, self.username, self.password)
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
-            "username": "username1",
+            "username": "username",
             "first_name": "",
             "last_name": "",
-            "email": "",
+            "email": "test1@test.com",
             "is_staff": False,
             "nurse": {
                 "address": "",
