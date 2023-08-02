@@ -14,7 +14,7 @@ class PatientSerializer(serializers.ModelSerializer):
     def get_prescriptions(self, obj):
         prescriptions = Prescription.objects.filter(patient_id=obj.id).order_by(
             "-end_date"
-        )[:2]
+        )
         return PrescriptionSerializer(prescriptions, many=True).data
 
 

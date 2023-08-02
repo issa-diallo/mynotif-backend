@@ -142,67 +142,71 @@ class TestPatient:
         patient = Patient.objects.create(**self.data)
         nurse, _ = Nurse.objects.get_or_create(user=self.user)
         patient.nurse_set.add(nurse)
-        # note that we create 3 prescriptions, but only the last two should show up
-        Prescription.objects.create(**{**prescription_data, **{"patient": patient}})
-        Prescription.objects.create(
-            **{
-                **prescription_data,
+
+        # Create 2 prescriptions for the patient
+        prescriptions = [
+            Prescription.objects.create(
                 **{
-                    "patient": patient,
-                    "start_date": "2022-08-01",
-                    "end_date": "2022-08-10",
-                },
-            }
-        )
-        Prescription.objects.create(
-            **{
-                **prescription_data,
-                **{
-                    "patient": patient,
-                    "start_date": "2022-08-10",
-                    "end_date": "2022-08-20",
-                },
-            }
-        )
-        response = self.client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == [
-            {
-                "id": 1,
-                "firstname": "John",
-                "lastname": "Leen",
-                "address": "3 place du cerdan",
-                "zip_code": "95400",
-                "city": "courdimanche",
-                "phone": "0602015454",
-                "prescriptions": [
-                    {
-                        "id": 3,
-                        "patient": 1,
-                        "carte_vitale": "12345678910",
-                        "caisse_rattachement": "12345678910",
-                        "prescribing_doctor": "Dr Leen",
-                        "start_date": "2022-08-10",
-                        "end_date": "2022-08-20",
-                        "at_renew": 1,
-                        "photo_prescription": None,
-                        "is_valid": True,
-                    },
-                    {
-                        "id": 2,
-                        "patient": 1,
-                        "carte_vitale": "12345678910",
-                        "caisse_rattachement": "12345678910",
-                        "prescribing_doctor": "Dr Leen",
+                    **prescription_data,
+                    **{
+                        "patient": patient,
                         "start_date": "2022-08-01",
                         "end_date": "2022-08-10",
-                        "at_renew": 1,
-                        "photo_prescription": None,
-                        "is_valid": False,
                     },
-                ],
-            }
+                }
+            ),
+            Prescription.objects.create(
+                **{
+                    **prescription_data,
+                    **{
+                        "patient": patient,
+                        "start_date": "2022-08-10",
+                        "end_date": "2022-08-20",
+                    },
+                }
+            ),
         ]
+
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+
+        expected_data = {
+            "id": 1,
+            "firstname": "John",
+            "lastname": "Leen",
+            "address": "3 place du cerdan",
+            "zip_code": "95400",
+            "city": "courdimanche",
+            "phone": "0602015454",
+            "prescriptions": [
+                {
+                    "id": prescriptions[1].id,
+                    "patient": 1,
+                    "carte_vitale": "12345678910",
+                    "caisse_rattachement": "12345678910",
+                    "prescribing_doctor": "Dr Leen",
+                    "start_date": "2022-08-10",
+                    "end_date": "2022-08-20",
+                    "at_renew": 1,
+                    "photo_prescription": None,
+                    "is_valid": True,
+                },
+                {
+                    "id": prescriptions[0].id,
+                    "patient": 1,
+                    "carte_vitale": "12345678910",
+                    "caisse_rattachement": "12345678910",
+                    "prescribing_doctor": "Dr Leen",
+                    "start_date": "2022-08-01",
+                    "end_date": "2022-08-10",
+                    "at_renew": 1,
+                    "photo_prescription": None,
+                    "is_valid": False,
+                },
+            ],
+        }
+
+        assert response.json() == [expected_data]
 
     def test_patient_list_401(self):
         """The endpoint should be under authentication."""
