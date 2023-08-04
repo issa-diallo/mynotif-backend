@@ -50,7 +50,6 @@ class Prescription(models.Model):
     prescribing_doctor = models.CharField(max_length=300, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
-    at_renew = models.BooleanField(blank=False)
     photo_prescription = models.ImageField(upload_to="prescriptions")
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True)
 
