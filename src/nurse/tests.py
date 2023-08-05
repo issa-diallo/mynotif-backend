@@ -62,8 +62,6 @@ def s3_mock():
 
 
 prescription_data = {
-    "carte_vitale": "12345678910",
-    "caisse_rattachement": "12345678910",
     "prescribing_doctor": "Dr Leen",
     "start_date": "2022-07-15",
     "end_date": "2022-07-31",
@@ -72,10 +70,13 @@ prescription_data = {
 patient_data = {
     "firstname": "John",
     "lastname": "Leen",
-    "address": "3 place du cerdan",
+    "street": "3 place du cerdan",
     "zip_code": "95400",
     "city": "courdimanche",
     "phone": "0602015454",
+    "health_card_number": "12345678910",
+    "ss_provider_code": "123456789",
+    "birthday": "2023-08-15",
 }
 
 
@@ -109,9 +110,12 @@ class TestPatient:
         patient = Patient.objects.get(phone="0602015454")
         assert patient.firstname == "John"
         assert patient.lastname == "Leen"
-        assert patient.address == "3 place du cerdan"
+        assert patient.street == "3 place du cerdan"
         assert patient.zip_code == "95400"
         assert patient.city == "courdimanche"
+        assert patient.health_card_number == "12345678910"
+        assert patient.ss_provider_code == "123456789"
+        assert patient.birthday.strftime("%Y-%m-%d") == "2023-08-15"
         # the patient is linked to the authenticated nurse
         nurse_set = patient.nurse_set
         assert nurse_set.count() == 1
@@ -131,9 +135,12 @@ class TestPatient:
         assert patient.firstname == "John"
         assert patient.lastname == "Leen"
         assert patient.phone == ""
-        assert patient.address == ""
+        assert patient.street == ""
         assert patient.zip_code == ""
         assert patient.city == ""
+        assert patient.health_card_number == ""
+        assert patient.ss_provider_code == ""
+        assert patient.birthday is None
 
     @freeze_time("2022-08-11")
     @override_settings(AWS_ACCESS_KEY_ID="testing")
@@ -173,16 +180,17 @@ class TestPatient:
             "id": 1,
             "firstname": "John",
             "lastname": "Leen",
-            "address": "3 place du cerdan",
+            "street": "3 place du cerdan",
             "zip_code": "95400",
             "city": "courdimanche",
             "phone": "0602015454",
+            "health_card_number": "12345678910",
+            "ss_provider_code": "123456789",
+            "birthday": "2023-08-15",
             "prescriptions": [
                 {
                     "id": prescriptions[1].id,
                     "patient": 1,
-                    "carte_vitale": "12345678910",
-                    "caisse_rattachement": "12345678910",
                     "prescribing_doctor": "Dr Leen",
                     "start_date": "2022-08-10",
                     "end_date": "2022-08-20",
@@ -192,8 +200,6 @@ class TestPatient:
                 {
                     "id": prescriptions[0].id,
                     "patient": 1,
-                    "carte_vitale": "12345678910",
-                    "caisse_rattachement": "12345678910",
                     "prescribing_doctor": "Dr Leen",
                     "start_date": "2022-08-01",
                     "end_date": "2022-08-10",
@@ -220,10 +226,13 @@ class TestPatient:
             "id": 1,
             "firstname": "John",
             "lastname": "Leen",
-            "address": "3 place du cerdan",
+            "street": "3 place du cerdan",
             "zip_code": "95400",
             "city": "courdimanche",
             "phone": "0602015454",
+            "health_card_number": "12345678910",
+            "ss_provider_code": "123456789",
+            "birthday": "2023-08-15",
             "prescriptions": [],
         }
 
@@ -264,8 +273,7 @@ class TestPrescription:
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert Prescription.objects.count() == 1
-        prescription = Prescription.objects.get(carte_vitale="12345678910")
-        assert prescription.caisse_rattachement == "12345678910"
+        prescription = Prescription.objects.get()
         assert prescription.prescribing_doctor == "Dr Leen"
         assert prescription.start_date == date(2022, 7, 15)
         assert prescription.end_date == date(2022, 7, 31)
@@ -287,8 +295,6 @@ class TestPrescription:
         assert response.json() == [
             {
                 "id": 1,
-                "carte_vitale": "12345678910",
-                "caisse_rattachement": "12345678910",
                 "prescribing_doctor": "Dr Leen",
                 "start_date": "2022-07-15",
                 "end_date": "2022-07-31",
@@ -319,8 +325,6 @@ class TestPrescription:
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
-            "carte_vitale": "12345678910",
-            "caisse_rattachement": "12345678910",
             "prescribing_doctor": "Dr Leen",
             "start_date": "2022-07-15",
             "end_date": "2022-07-31",
@@ -350,7 +354,6 @@ class TestPrescription:
     @override_settings(AWS_ACCESS_KEY_ID="testing")
     def test_prescription_upload(self, s3_mock):
         prescription = Prescription.objects.create(**self.data)
-        assert prescription.carte_vitale == "12345678910"
         assert prescription.photo_prescription.name == ""
         with pytest.raises(
             ValueError,
@@ -376,7 +379,7 @@ class TestPrescription:
         prescription.refresh_from_db()
         assert prescription.photo_prescription.name.endswith(get_test_image().name)
         # makes sure other fields didn't get overwritten
-        assert prescription.carte_vitale == "12345678910"
+        assert prescription.prescribing_doctor == "Dr Leen"
 
 
 @pytest.mark.django_db
