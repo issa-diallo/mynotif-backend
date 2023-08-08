@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-def make_address_field():
+def make_street_field():
     return models.CharField(max_length=30, blank=True, default="")
 
 
@@ -23,10 +23,19 @@ def make_phone_field():
 class Patient(models.Model):
     firstname = models.CharField(max_length=30, blank=False)
     lastname = models.CharField(max_length=30, blank=False)
-    address = make_address_field()
+    street = make_street_field()
     zip_code = make_zip_code_field()
     city = make_city_field()
     phone = make_phone_field()
+    birthday = models.DateField(
+        auto_now=False, auto_now_add=False, blank=True, null=True
+    )
+    health_card_number = models.CharField(
+        max_length=15, blank=True, help_text="carte vitale"
+    )
+    ss_provider_code = models.CharField(
+        max_length=9, blank=True, help_text="code d'organisme de rattachement"
+    )
 
     def __str__(self):
         return str(self.firstname)
@@ -35,7 +44,7 @@ class Patient(models.Model):
 class Nurse(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
     phone = make_phone_field()
-    address = make_address_field()
+    address = make_street_field()
     zip_code = make_zip_code_field()
     city = make_city_field()
     patients = models.ManyToManyField(Patient, blank=True)
@@ -45,8 +54,6 @@ class Nurse(models.Model):
 
 
 class Prescription(models.Model):
-    carte_vitale = models.CharField(max_length=300, blank=False)
-    caisse_rattachement = models.CharField(max_length=300, blank=False)
     prescribing_doctor = models.CharField(max_length=300, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)

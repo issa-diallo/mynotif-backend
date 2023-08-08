@@ -10,14 +10,22 @@ class NurseAdmin(admin.ModelAdmin):
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
-    list_display = ("firstname", "lastname", "city", "zip_code", "phone", "address")
+    list_display = (
+        "firstname",
+        "lastname",
+        "city",
+        "zip_code",
+        "phone",
+        "street",
+        "health_card_number",
+        "ss_provider_code",
+        "birthday",
+    )
 
 
 @admin.register(Prescription)
 class PrescriptionAdmin(admin.ModelAdmin):
     list_display = (
-        "carte_vitale",
-        "caisse_rattachement",
         "prescribing_doctor",
         "start_date",
         "end_date",
