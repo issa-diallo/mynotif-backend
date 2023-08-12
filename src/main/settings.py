@@ -221,6 +221,10 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": os.environ.get("PASSWORD_RESET_CONFIRM_URL"),
 }
 
+# one signal configuration
+ONESIGNAL_API_KEY = os.environ.get("ONESIGNAL_API_KEY")
+ONESIGNAL_APP_ID = os.environ.get("ONESIGNAL_APP_ID")
+
 # django-templated-mail
 DOMAIN = os.environ.get("TEMPLATED_MAIL_DOMAIN", "")
 SITE_NAME = os.environ.get("TEMPLATED_SITE_NAME", "")
