@@ -45,6 +45,9 @@ resource "aws_apprunner_service" "backend" {
           PASSWORD_RESET_CONFIRM_URL = var.env_password_reset_confirm_url
           TEMPLATED_MAIL_DOMAIN      = var.env_templated_mail_domain
           TEMPLATED_SITE_NAME        = var.env_templated_site_name
+          # OneSignal
+          ONESIGNAL_APP_ID  = data.aws_ssm_parameter.onesignal_api_id.value
+          ONESIGNAL_API_KEY = data.aws_ssm_parameter.onesignal_api_key.value
         }
       }
       image_repository_type = "ECR"

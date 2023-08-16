@@ -25,6 +25,7 @@ APP_NAME=mynotif-backend
 IMAGE_NAME=$(APP_NAME)-production
 DOCKER_IMAGE=$(REGISTRY)/$(IMAGE_NAME)
 SOURCES=src/
+APPRUNNER_ARN=arn:aws:apprunner:eu-central-1:$(AWS_ACCOUNT_ID):service/$(APP_NAME)-runner-production/34b4084ddade4d85be8e625e6b55ea5a
 
 
 all: virtualenv
@@ -41,7 +42,11 @@ virtualenv/test: virtualenv
 
 requirements.txt: | $(VIRTUAL_ENV)
 	$(PYTHON) -m pip install --upgrade pip-tools
-	$(PIP_COMPILE) --upgrade --output-file requirements.txt
+	$(PIP_COMPILE) --upgrade --output-file $@
+
+src/lambda/requirements.txt: | $(VIRTUAL_ENV)
+	$(PYTHON) -m pip install --upgrade pip-tools
+	$(PIP_COMPILE) src/lambda/requirements.in --upgrade --output-file $@
 
 clean:
 	rm -rf venv/ .pytest_cache/
@@ -136,3 +141,6 @@ devops/terraform/apply:
 
 devops/terraform/destroy:
 	terraform -chdir=terraform destroy -auto-approve
+
+devops/aws/redeploy/apprunner:
+	aws apprunner update-service --service-arn $(APPRUNNER_ARN)
