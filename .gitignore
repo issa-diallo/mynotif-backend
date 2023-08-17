@@ -12,3 +12,4 @@ venv
 *.tfstate
 *.tfstate.*
 **/.terraform.lock.hcl
+.vscode/
