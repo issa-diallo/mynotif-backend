@@ -28,11 +28,14 @@ from rest_framework.authtoken.views import obtain_auth_token
 from nurse import views as nurse_views
 from nurse.urls import router as nurse_router
 
+from . import views as main_views
+
 router = routers.DefaultRouter()
 router.registry.extend(nurse_router.registry)
 
 
 urlpatterns = [
+    path("version/", main_views.version, name="version"),
     path("admin/", admin.site.urls),
     path("account/", include("rest_framework.urls")),
     path("account/register", nurse_views.UserCreate.as_view(), name="register"),
