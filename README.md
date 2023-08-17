@@ -5,9 +5,9 @@
 
 ## URLs
 
-- :tada: https://api.mynotif.fr/
-- :memo: https://api.mynotif.fr/swagger/
-- :memo: https://api.mynotif.fr/redoc/
+- :tada: https://36qsqt3mz2.eu-central-1.awsapprunner.com/
+- :memo: https://36qsqt3mz2.eu-central-1.awsapprunner.com/swagger/
+- :memo: https://36qsqt3mz2.eu-central-1.awsapprunner.com/redoc/
 - :goal_net: https://sentry.io/organizations/andre-5t/issues/3096848907/?project=6257099
 
 ## Install
