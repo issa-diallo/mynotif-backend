@@ -1,4 +1,5 @@
 VIRTUAL_ENV?=venv
+VERSION=$(shell git describe --tags --always)
 PIP=$(VIRTUAL_ENV)/bin/pip
 PIP_COMPILE=$(VIRTUAL_ENV)/bin/pip-compile
 GUNICORN=$(VIRTUAL_ENV)/bin/gunicorn
@@ -100,7 +101,7 @@ run/prod:
 	$(GUNICORN) --chdir src --bind 0.0.0.0:$(PORT) main.wsgi
 
 docker/build:
-	docker build --build-arg PORT=$(PORT) --tag=$(DOCKER_IMAGE):$(IMAGE_TAG) .
+	docker build --build-arg PORT=$(PORT) --build-arg VERSION=$(VERSION) --tag=$(DOCKER_IMAGE):$(IMAGE_TAG) .
 
 docker/run:
 	docker run -it --env-file .env --publish $(PORT):$(PORT) --rm $(DOCKER_IMAGE):$(IMAGE_TAG)
