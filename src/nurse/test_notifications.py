@@ -33,7 +33,7 @@ class TestNotifications:
             mock.call(expected_notification_body)
         ]
 
-    def test_get_client_with_valid_settings():
+    def test_get_client_with_valid_settings(self):
         with override_settings(
             ONESIGNAL_APP_ID=ONESIGNAL_APP_ID,
             ONESIGNAL_API_KEY=ONESIGNAL_API_KEY,
@@ -52,7 +52,7 @@ class TestNotifications:
             (ONESIGNAL_APP_ID, None, "ONESIGNAL_API_KEY must be set"),
         ],
     )
-    def test_get_client_with_missing_settings(app_id, api_key, expected_error):
+    def test_get_client_with_missing_settings(self, app_id, api_key, expected_error):
         with override_settings(
             ONESIGNAL_APP_ID=app_id,
             ONESIGNAL_API_KEY=api_key,
