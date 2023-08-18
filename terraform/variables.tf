@@ -20,7 +20,7 @@ variable "app_name" {
 variable "role_arn" {
   type        = string
   description = "Deployment role ARN"
-  default     = "arn:aws:iam::332944743618:role/mynotif-deployment-automation-role"
+  default     = "arn:aws:iam::332944743618:role/mynotif-infra-deployment-automation-role"
 }
 
 variable "environment" {
