@@ -14,7 +14,7 @@ from moto import mock_s3
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from .models import Nurse, Patient, Prescription
+from nurse.models import Nurse, Patient, Prescription
 
 
 def authenticate(client, username, password):
