@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework import routers
 
 from nurse.views import (
+    AdminNotificationView,
     NurseViewSet,
     PatientViewSet,
     PrescriptionFileView,
@@ -23,6 +24,7 @@ urlpatterns = [
         PrescriptionFileView.as_view(),
         name="prescription-upload",
     ),
+    path("notify/", AdminNotificationView.as_view(), name="notify"),
 ]
 
 urlpatterns += router.urls

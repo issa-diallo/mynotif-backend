@@ -1,10 +1,11 @@
 from django.contrib.auth.models import User
-from rest_framework import generics, mixins, viewsets
+from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from nurse.management.commands._notifications import notify
 from nurse.models import Nurse, Patient, Prescription
 from nurse.serializers import (
     NurseSerializer,
@@ -96,3 +97,13 @@ class UserCreate(generics.CreateAPIView):
         user = User.objects.get(username=username)
         Nurse.objects.get_or_create(user=user)
         return response
+
+
+class AdminNotificationView(APIView):
+    """The view dealing with sending push notifications."""
+
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        notify()
+        return Response(status=status.HTTP_204_NO_CONTENT)
