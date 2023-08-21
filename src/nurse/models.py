@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -53,12 +53,20 @@ class Nurse(models.Model):
         return str(self.user)
 
 
+class PrescriptionManager(models.Manager):
+    def expiring_soon(self, days=7):
+        today = datetime.now().date()
+        expiring_soon_date = today + timedelta(days=days)
+        return self.filter(end_date__lte=expiring_soon_date, end_date__gte=today)
+
+
 class Prescription(models.Model):
     prescribing_doctor = models.CharField(max_length=300, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
     photo_prescription = models.ImageField(upload_to="prescriptions")
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True)
+    objects = PrescriptionManager()
 
     def __str__(self):
         return str(self.carte_vitale)
