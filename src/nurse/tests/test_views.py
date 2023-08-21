@@ -16,23 +16,41 @@ from rest_framework.test import APIClient
 
 from nurse.models import Nurse, Patient, Prescription
 
+USERNAME = "username1"
+PASSWORD = "password1"
 
-def authenticate(client, username, password):
-    """Creates a user and authenticates it via token."""
-    username_kw = {"username": username}
-    password_kw = {"password": password}
-    credentials = {**username_kw, **password_kw}
-    user = User.objects.create(**username_kw)
-    user.set_password(credentials["password"])
+
+@pytest.fixture
+def user(db):
+    """Creates and yields a new user."""
+    user = User.objects.create(username=USERNAME)
+    user.set_password(PASSWORD)
     user.save()
+    yield user
+    user.delete()
+
+
+@pytest.fixture
+def authenticated_client(user):
+    """Authenticates the user via token and yields it."""
+    client = APIClient()
     # voids previous credentials to avoid "Invalid token" errors
     client.credentials()
     response = client.post(
-        reverse_lazy("api_token_auth"), {**credentials}, format="json"
+        reverse_lazy("api_token_auth"),
+        {"username": USERNAME, "password": PASSWORD},
+        format="json",
     )
     token = response.data["token"]
     client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
-    return user
+    yield client
+    # invalidates credentials
+    client.credentials()
+
+
+@pytest.fixture
+def client(authenticated_client):
+    return authenticated_client
 
 
 def attach_prescription(prescription, user):
@@ -82,29 +100,15 @@ patient_data = {
 
 @pytest.mark.django_db
 class TestPatient:
-    client = APIClient()
-    user = None
-
     url = reverse_lazy("patient-list")
-
     data = patient_data
-    username = "username1"
-    password = "password1"
-
-    def setup_method(self, method):
-        """Creates a user and authenticates it via token."""
-        self.user = authenticate(self.client, self.username, self.password)
-
-    def teardown_method(self, method):
-        """Invalidate credentials."""
-        self.client.credentials()
 
     def test_endpoint_patient(self):
         assert self.url == "/patient/"
 
-    def test_create_patient(self):
+    def test_create_patient(self, user, client):
         """Creating a patient should link it with the authenticated nurse."""
-        response = self.client.post(self.url, self.data, format="json")
+        response = client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert Patient.objects.count() == 1
         patient = Patient.objects.get(phone="0602015454")
@@ -119,16 +123,16 @@ class TestPatient:
         # the patient is linked to the authenticated nurse
         nurse_set = patient.nurse_set
         assert nurse_set.count() == 1
-        nurse_set.all().get().user == self.user
+        nurse_set.all().get().user == user
 
-    def test_create_minimal_patient(self):
+    def test_create_minimal_patient(self, client):
         """It should be possible to create a patient with only his fullname."""
         data = {
             "firstname": "John",
             "lastname": "Leen",
         }
         assert Patient.objects.count() == 0
-        response = self.client.post(self.url, data, format="json")
+        response = client.post(self.url, data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert Patient.objects.count() == 1
         patient = Patient.objects.get()
@@ -144,9 +148,9 @@ class TestPatient:
 
     @freeze_time("2022-08-11")
     @override_settings(AWS_ACCESS_KEY_ID="testing")
-    def test_patient_list(self):
+    def test_patient_list(self, user, client):
         patient = Patient.objects.create(**self.data)
-        nurse, _ = Nurse.objects.get_or_create(user=self.user)
+        nurse, _ = Nurse.objects.get_or_create(user=user)
         patient.nurse_set.add(nurse)
 
         # Create 2 prescriptions for the patient
@@ -173,7 +177,7 @@ class TestPatient:
             ),
         ]
 
-        response = self.client.get(self.url)
+        response = client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
 
         expected_data = {
@@ -216,11 +220,11 @@ class TestPatient:
         response = APIClient().get(self.url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_patient_detail(self):
+    def test_patient_detail(self, user, client):
         patient = Patient.objects.create(**self.data)
-        nurse, _ = Nurse.objects.get_or_create(user=self.user)
+        nurse, _ = Nurse.objects.get_or_create(user=user)
         patient.nurse_set.add(nurse)
-        response = self.client.get(reverse_lazy("patient-detail", kwargs={"pk": 1}))
+        response = client.get(reverse_lazy("patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
@@ -236,11 +240,11 @@ class TestPatient:
             "prescriptions": [],
         }
 
-    def test_patient_delete(self):
+    def test_patient_delete(self, user, client):
         patient = Patient.objects.create(**self.data)
-        nurse, _ = Nurse.objects.get_or_create(user=self.user)
+        nurse, _ = Nurse.objects.get_or_create(user=user)
         patient.nurse_set.add(nurse)
-        response = self.client.delete(reverse_lazy("patient-detail", kwargs={"pk": 1}))
+        response = client.delete(reverse_lazy("patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
         assert Patient.objects.count() == 0
@@ -248,29 +252,15 @@ class TestPatient:
 
 @pytest.mark.django_db
 class TestPrescription:
-    client = APIClient()
-    user = None
-
     url = reverse_lazy("prescription-list")
-
     data = prescription_data
-    username = "username1"
-    password = "password1"
-
-    def setup_method(self, method):
-        """Creates a user and authenticates it via token."""
-        self.user = authenticate(self.client, self.username, self.password)
-
-    def teardown_method(self, method):
-        """Invalidate credentials."""
-        self.client.credentials()
 
     def test_endpoint(self):
         assert self.url == "/prescription/"
 
     # TODO: prescription should only be mapped to a patient's nurse
-    def test_create_prescription(self):
-        response = self.client.post(self.url, self.data, format="json")
+    def test_create_prescription(self, client):
+        response = client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert Prescription.objects.count() == 1
         prescription = Prescription.objects.get()
@@ -280,16 +270,16 @@ class TestPrescription:
         assert prescription.photo_prescription.name == ""
 
     @freeze_time("2022-08-11")
-    def test_prescription_list(self):
+    def test_prescription_list(self, user, client):
         # creating a prescription with no nurse attached
         prescription = Prescription.objects.create(**self.data)
-        response = self.client.get(self.url)
+        response = client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         # the prescription isn't attached to a nurse
         assert response.json() == []
         # let's link patient, nurse and prescription together
-        patient, _, _ = attach_prescription(prescription, self.user)
-        response = self.client.get(self.url)
+        patient, _, _ = attach_prescription(prescription, user)
+        response = client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         # the nurse should see the attached prescription
         assert response.json() == [
@@ -310,18 +300,14 @@ class TestPrescription:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @freeze_time("2022-07-20")
-    def test_prescription_detail(self):
+    def test_prescription_detail(self, user, client):
         prescription = Prescription.objects.create(**self.data)
-        response = self.client.get(
-            reverse_lazy("prescription-detail", kwargs={"pk": 1})
-        )
+        response = client.get(reverse_lazy("prescription-detail", kwargs={"pk": 1}))
         # the prescription/patient is not linked to the logged nurse
         assert response.status_code == status.HTTP_404_NOT_FOUND
         # let's link patient, nurse and prescription together
-        patient, _, _ = attach_prescription(prescription, self.user)
-        response = self.client.get(
-            reverse_lazy("prescription-detail", kwargs={"pk": 1})
-        )
+        patient, _, _ = attach_prescription(prescription, user)
+        response = client.get(reverse_lazy("prescription-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
@@ -333,16 +319,16 @@ class TestPrescription:
             "is_valid": True,
         }
 
-    def test_prescription_delete(self):
+    def test_prescription_delete(self, user, client):
         prescription = Prescription.objects.create(**self.data)
-        response = self.client.delete(
+        response = client.delete(
             reverse_lazy("prescription-detail", kwargs={"pk": prescription.id})
         )
         # the prescription/patient is not linked to the logged nurse
         assert response.status_code == status.HTTP_404_NOT_FOUND
         # let's link patient, nurse and prescription together
-        patient, _, _ = attach_prescription(prescription, self.user)
-        response = self.client.delete(
+        patient, _, _ = attach_prescription(prescription, user)
+        response = client.delete(
             reverse_lazy("prescription-detail", kwargs={"pk": prescription.id})
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -352,7 +338,7 @@ class TestPrescription:
     # TODO: only allow to upload to prescription we own (and test that), refs #64 & #67
     # TODO: needed?
     @override_settings(AWS_ACCESS_KEY_ID="testing")
-    def test_prescription_upload(self, s3_mock):
+    def test_prescription_upload(self, s3_mock, client):
         prescription = Prescription.objects.create(**self.data)
         assert prescription.photo_prescription.name == ""
         with pytest.raises(
@@ -364,7 +350,7 @@ class TestPrescription:
             "photo_prescription": get_test_image(),
         }
         # patch should also be available
-        response = self.client.put(
+        response = client.put(
             reverse_lazy("prescription-upload", kwargs={"pk": prescription.id}), data
         )
         assert response.status_code == status.HTTP_200_OK
@@ -384,10 +370,7 @@ class TestPrescription:
 
 @pytest.mark.django_db
 class TestNurse:
-    client = APIClient()
-
     url = reverse_lazy("nurse-list")
-
     data = {
         "user": 1,
         "phone": "0134643232",
@@ -396,23 +379,11 @@ class TestNurse:
         "city": "Pontoise",
     }
 
-    username = "username1"
-    password = "password1"
-
-    def setup_method(self, method):
-        """Creates a user and authenticates it via token."""
-        authenticate(self.client, self.username, self.password)
-
-    def teardown_method(self, method):
-        """Invalidate credentials."""
-        self.client.credentials()
-
     def test_endpoint(self):
         assert self.url == "/nurse/"
 
-    def test_create_nurse(self):
-        user = User.objects.get()
-        response = self.client.post(self.url, self.data, format="json")
+    def test_create_nurse(self, user, client):
+        response = client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
             **self.data,
@@ -429,8 +400,7 @@ class TestNurse:
         assert nurse.zip_code == "95300"
         assert nurse.city == "Pontoise"
 
-    def test_nurse_list(self):
-        user = User.objects.get()
+    def test_nurse_list(self, user, client):
         Nurse.objects.create(
             user=user,
             phone="0134643232",
@@ -438,7 +408,7 @@ class TestNurse:
             zip_code="95300",
             city="Pontoise",
         )
-        response = self.client.get(self.url)
+        response = client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == [
             {
@@ -457,7 +427,7 @@ class TestNurse:
         response = APIClient().get(self.url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_nurse_detail(self):
+    def test_nurse_detail(self, user, client):
         user = User.objects.get()
         Nurse.objects.create(
             user=user,
@@ -466,7 +436,7 @@ class TestNurse:
             zip_code="95300",
             city="Pontoise",
         )
-        response = self.client.get(reverse_lazy("nurse-detail", kwargs={"pk": 1}))
+        response = client.get(reverse_lazy("nurse-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
@@ -481,10 +451,7 @@ class TestNurse:
 
 @pytest.mark.django_db
 class TestUser:
-    client = APIClient()
-
     url = reverse_lazy("user-list")
-
     data = {
         "username": "@Issa",
         "email": "issa_test@test.com",
@@ -494,24 +461,21 @@ class TestUser:
     def test_endpoint(self):
         assert self.url == "/user/"
 
-    def test_create_user(self):
+    def test_create_user(self, client):
         """The user creation is via another a different endpoint (/account/register)."""
-        response = self.client.post(self.url, self.data, format="json")
+        response = APIClient().post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         # it should be no way to create user via this endpoint
         # even being authenticated
-        authenticate(self.client, self.data["username"], self.data["password"])
-        response = self.client.post(self.url, self.data, format="json")
+        response = client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
-    def test_list_user(self):
-        authenticate(self.client, self.data["username"], self.data["password"])
-        response = self.client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == [
+    def test_list_user(self, user, client):
+        """Listing user should only return self."""
+        expected_response = [
             {
                 "id": 1,
-                "username": self.data["username"],
+                "username": user.username,
                 "first_name": "",
                 "last_name": "",
                 "email": "",
@@ -527,14 +491,22 @@ class TestUser:
                 },
             }
         ]
+        response = client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == expected_response
+        assert User.objects.count() == 1
+        User.objects.create(username="another-user")
+        response = client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        # TODO: this is a bug, we shouldn't be able to list other users
+        assert response.json() != expected_response
 
-    def test_detail_user(self):
-        authenticate(self.client, self.data["username"], self.data["password"])
-        response = self.client.get(reverse_lazy("user-detail", kwargs={"pk": None}))
+    def test_detail_user(self, user, client):
+        response = client.get(reverse_lazy("user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
-            "username": self.data["username"],
+            "username": user.username,
             "first_name": "",
             "last_name": "",
             "email": "",
@@ -571,11 +543,10 @@ class TestUser:
             (lambda client, path, data=None, format=None: client.delete(path)),
         ],
     )
-    def test_pk_permission_denied(self, action):
+    def test_pk_permission_denied(self, action, client):
         """We can only view/update/delete self user by using `pk=<not-a-number>`"""
-        authenticate(self.client, self.data["username"], self.data["password"])
         response = action(
-            self.client,
+            client,
             # using a number for the pk would mean we're trying to access CRUD
             # operations on a specific user which is forbidden
             reverse_lazy("user-detail", kwargs={"pk": 1}),
@@ -588,14 +559,15 @@ class TestUser:
             == "You do not have permission to perform this action."
         )
 
-    def test_update_user(self):
-        authenticate(self.client, self.data["username"], self.data["password"])
+    def test_update_user(self, client):
         data = {**self.data, "first_name": "Firstname1", "last_name": "Lastname 1"}
-        response = self.client.put(
+        response = client.put(
             reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
         )
         assert response.status_code == status.HTTP_200_OK
         data.pop("password")
+        # TODO: first_name and last_name not getting updated, this could be a feature
+        # since we're probably using profile but it should be better documented or fixed
         assert response.json() == {
             **data,
             "id": 1,
@@ -611,17 +583,17 @@ class TestUser:
             },
         }
 
-    def test_partial_update_user(self):
+    def test_partial_update_user(self, user, client):
         """Using a patch for a partial update (not all fields)."""
-        authenticate(self.client, self.data["username"], self.data["password"])
         data = {"first_name": "Firstname1", "last_name": "Lastname 1"}
-        response = self.client.patch(
+        response = client.patch(
             reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
         )
         assert response.status_code == status.HTTP_200_OK
+        # TODO: same bug as test_update_user above
         assert response.json() == {
             "id": 1,
-            "username": self.data["username"],
+            "username": user.username,
             "email": "",
             "is_staff": False,
             **data,
@@ -636,9 +608,8 @@ class TestUser:
             },
         }
 
-    def test_delete_user(self):
-        authenticate(self.client, self.data["username"], self.data["password"])
-        response = self.client.delete(reverse_lazy("user-detail", kwargs={"pk": None}))
+    def test_delete_user(self, client):
+        response = client.delete(reverse_lazy("user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
         assert User.objects.count() == 0
@@ -648,8 +619,8 @@ class TestUser:
 class TestAccountRegister:
     client = APIClient()
     url = reverse_lazy("register")
-    username = {"username": "username1"}
-    password = {"password": "password1"}
+    username = {"username": USERNAME}
+    password = {"password": PASSWORD}
     data = {**username, **password}
 
     def test_url(self):
@@ -661,7 +632,7 @@ class TestAccountRegister:
         response = self.client.post(self.url, self.data, format="json")
         assert response.json() == {
             "id": 1,
-            "username": "username1",
+            "username": USERNAME,
             "first_name": "",
             "last_name": "",
             "email": "",
@@ -724,23 +695,17 @@ class TestAccountRegister:
 
 @pytest.mark.django_db
 class TestProfile:
-    client = APIClient()
-
     url = "/profile/"
-
-    username = "username1"
-    password = "password1"
 
     def test_endpoint(self):
         assert self.url == reverse_lazy("profile")
 
-    def test_get(self):
-        authenticate(self.client, self.username, self.password)
-        response = self.client.get(self.url)
+    def test_get(self, client):
+        response = client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
-            "username": "username1",
+            "username": USERNAME,
             "first_name": "",
             "last_name": "",
             "email": "",
