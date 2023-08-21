@@ -20,6 +20,10 @@ USERNAME = "username1"
 PASSWORD = "password1"
 
 
+def patch_notify():
+    return mock.patch("nurse.views.notify")
+
+
 @pytest.fixture
 def user(db):
     """Creates and yields a new user."""
@@ -31,18 +35,32 @@ def user(db):
 
 
 @pytest.fixture
-def authenticated_client(user):
-    """Authenticates the user via token and yields it."""
-    client = APIClient()
-    # voids previous credentials to avoid "Invalid token" errors
+def staff_user(user):
+    """Creates and yields a staff user."""
+    user.is_staff = True
+    user.save()
+    yield user
+
+
+def authenticate_client_with_token(client, username, password):
+    """Authenticates a client using a token and returns it."""
+    # void previous credentials to avoid "Invalid token" errors
     client.credentials()
     response = client.post(
         reverse_lazy("api_token_auth"),
-        {"username": USERNAME, "password": PASSWORD},
+        {"username": username, "password": password},
         format="json",
     )
     token = response.data["token"]
     client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
+    return client
+
+
+@pytest.fixture
+def authenticated_client(user):
+    """Authenticates the user via token and yields it."""
+    client = APIClient()
+    client = authenticate_client_with_token(client, user.username, PASSWORD)
     yield client
     # invalidates credentials
     client.credentials()
@@ -51,6 +69,16 @@ def authenticated_client(user):
 @pytest.fixture
 def client(authenticated_client):
     return authenticated_client
+
+
+@pytest.fixture
+def staff_client(staff_user):
+    """Authenticates the staff user via token and yields it."""
+    client = APIClient()
+    client = authenticate_client_with_token(client, staff_user.username, PASSWORD)
+    yield client
+    # invalidates credentials
+    client.credentials()
 
 
 def attach_prescription(prescription, user):
@@ -719,4 +747,40 @@ class TestProfile:
                 "user": 1,
                 "zip_code": "",
             },
+        }
+
+
+@pytest.mark.django_db
+class TestAdminNotificationView:
+    url = reverse_lazy("notify")
+
+    def test_endpoint_patient(self):
+        assert self.url == "/notify/"
+
+    def test_post(self, user, staff_client):
+        """Posting to the endpoint should send notifications."""
+        with patch_notify() as mock_notify:
+            response = staff_client.post(self.url, {}, format="json")
+        assert mock_notify.call_args_list == [mock.call()]
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.data is None
+
+    def test_post_unauthenticated(self, user, client):
+        """Unauthenticated clients aren't allowed."""
+        with patch_notify() as mock_notify:
+            response = APIClient().post(self.url, {}, format="json")
+        assert mock_notify.call_args_list == []
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {
+            "detail": "Authentication credentials were not provided."
+        }
+
+    def test_post_only_staff(self, user, client):
+        """Only staff users are allowed."""
+        with patch_notify() as mock_notify:
+            response = client.post(self.url, {}, format="json")
+        assert mock_notify.call_args_list == []
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {
+            "detail": "You do not have permission to perform this action."
         }
