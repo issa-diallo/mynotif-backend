@@ -40,3 +40,20 @@ data "aws_ssm_parameter" "aws_access_key_id" {
 data "aws_ssm_parameter" "aws_secret_access_key" {
   name = "${var.app_name}-aws-secret-access-key-${var.environment}"
 }
+
+# OneSignal
+data "aws_ssm_parameter" "onesignal_api_id" {
+  name = "${var.app_name}-onesignal-api-id-${var.environment}"
+}
+
+data "aws_ssm_parameter" "onesignal_api_key" {
+  name = "${var.app_name}-onesignal-api-key-${var.environment}"
+}
+
+data "aws_ssm_parameter" "notify_username" {
+  name = "${var.app_name}-notify-username-${var.environment}"
+}
+
+data "aws_ssm_parameter" "notify_password" {
+  name = "${var.app_name}-notify-password-${var.environment}"
+}

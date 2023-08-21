@@ -8,6 +8,9 @@ venv
 # Local .terraform directories
 **/.terraform/*
 
+# terraform-aws-modules/lambda/aws module builds
+terraform/builds/
+
 # .tfstate files
 *.tfstate
 *.tfstate.*

@@ -29,7 +29,7 @@ variable "environment" {
   default     = "production"
 }
 
-# Environment variables definition
+## App Runner environment variables definition
 variable "env_allowed_hosts" {
   type        = list(string)
   description = "https://docs.djangoproject.com/en/4.2/ref/settings/#allowed-hosts"
@@ -50,7 +50,7 @@ variable "env_csrf_trusted_origins" {
   ]
 }
 
-# Database
+## App Runner database
 variable "env_database_engine" {
   type        = string
   description = "https://docs.djangoproject.com/en/3.2/ref/settings/#engine"
@@ -121,6 +121,13 @@ variable "env_templated_mail_domain" {
 variable "env_templated_site_name" {
   type    = string
   default = "MyNotif"
+}
+
+## Lambda configuration
+variable "lambda_python_runtime" {
+  description = "AWS Lambda Python runtime version"
+  type        = string
+  default     = "python3.10"
 }
 
 locals {
