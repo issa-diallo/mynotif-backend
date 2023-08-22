@@ -29,6 +29,19 @@ variable "environment" {
   default     = "production"
 }
 
+## Domain setup
+variable "domain_name" {
+  type        = string
+  description = "Application domain"
+  default     = "ordopro.fr"
+}
+
+variable "record_ttl" {
+  type        = number
+  description = "The TTL of the record"
+  default     = 300
+}
+
 ## App Runner environment variables definition
 variable "env_allowed_hosts" {
   type        = list(string)
@@ -37,6 +50,7 @@ variable "env_allowed_hosts" {
     "127.0.0.1",
     "localhost",
     ".eu-central-1.awsapprunner.com",
+    "api.ordopro.fr",
   ]
 }
 
@@ -47,6 +61,7 @@ variable "env_csrf_trusted_origins" {
     "http://127.0.0.1",
     "http://localhost",
     "https://*.eu-central-1.awsapprunner.com",
+    "https://api.ordopro.fr",
   ]
 }
 
@@ -131,5 +146,6 @@ variable "lambda_python_runtime" {
 }
 
 locals {
-  image_name = "${var.app_name}-${var.environment}"
+  image_name        = "${var.app_name}-${var.environment}"
+  backend_subdomain = "api.${var.domain_name}"
 }

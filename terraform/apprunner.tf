@@ -55,3 +55,9 @@ resource "aws_apprunner_service" "backend" {
     }
   }
 }
+
+resource "aws_apprunner_custom_domain_association" "backend" {
+  provider    = aws.app_runner
+  domain_name = local.backend_subdomain
+  service_arn = aws_apprunner_service.backend.arn
+}
