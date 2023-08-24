@@ -9,6 +9,10 @@ resource "aws_apprunner_service" "backend" {
   auto_scaling_configuration_arn = aws_apprunner_auto_scaling_configuration_version.backend.arn
   service_name                   = "${var.app_name}-runner-${var.environment}"
   provider                       = aws.app_runner
+  instance_configuration {
+    cpu    = "0.25 vCPU"
+    memory = "0.5 GB"
+  }
   source_configuration {
     auto_deployments_enabled = false
     authentication_configuration {
