@@ -40,6 +40,13 @@ def prescription_started_today():
 
 
 @pytest.mark.django_db
+class TestPrescription:
+    def test_str(self, base_prescriptions):
+        prescription = Prescription.objects.first()
+        assert prescription.__str__() == "Prescription: Dr A"
+
+
+@pytest.mark.django_db
 class TestPrescriptionManager:
     @pytest.mark.parametrize(
         "days,expected_count,expected_doctors",

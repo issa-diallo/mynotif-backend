@@ -69,7 +69,7 @@ class Prescription(models.Model):
     objects = PrescriptionManager()
 
     def __str__(self):
-        return str(self.carte_vitale)
+        return f"Prescription: {self.prescribing_doctor}"
 
     def is_valid(self):
         """Returns true if the prescription is still valid (e.g. hasn't expired)."""
