@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from nurse.models import Nurse, Patient, Prescription
+from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
 
 
 @admin.register(Nurse)
@@ -29,4 +29,12 @@ class PrescriptionAdmin(admin.ModelAdmin):
         "prescribing_doctor",
         "start_date",
         "end_date",
+    )
+
+
+@admin.register(UserOneSignalProfile)
+class UserOneSignalProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "subscription_id",
     )
