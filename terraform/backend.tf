@@ -7,7 +7,6 @@ terraform {
     key            = "terraform.tfstate"
     dynamodb_table = "mynotif-backend-terraform-state-lock"
     profile        = ""
-    role_arn       = ""
     encrypt        = "true"
   }
 }
