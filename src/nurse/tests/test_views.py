@@ -10,7 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls.base import reverse_lazy
 from freezegun import freeze_time
-from moto import mock_s3
+from moto import mock_aws
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -101,7 +101,7 @@ def get_test_image():
 
 @pytest.fixture
 def s3_mock():
-    with mock_s3():
+    with mock_aws():
         s3 = boto3.client("s3", region_name="us-east-1")
         s3.create_bucket(Bucket="mynotif-prescription")
         yield
