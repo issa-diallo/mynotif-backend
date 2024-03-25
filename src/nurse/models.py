@@ -54,7 +54,9 @@ class Nurse(models.Model):
 
 
 class PrescriptionManager(models.Manager):
-    def expiring_soon(self, days=7):
+    DEFAULT_EXPIRING_SOON_DAYS = 7
+
+    def expiring_soon(self, days=DEFAULT_EXPIRING_SOON_DAYS):
         today = datetime.now().date()
         expiring_soon_date = today + timedelta(days=days)
         return self.filter(end_date__lte=expiring_soon_date, end_date__gte=today)
@@ -74,3 +76,8 @@ class Prescription(models.Model):
     def is_valid(self):
         """Returns true if the prescription is still valid (e.g. hasn't expired)."""
         return self.start_date <= datetime.now().date() <= self.end_date
+
+
+class UserOneSignalProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    subscription_id = models.CharField(max_length=255, blank=True, null=True)
