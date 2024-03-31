@@ -52,7 +52,7 @@ clean:
 	rm -rf venv/ .pytest_cache/
 
 unittest:
-	$(PYTEST) src/*/tests/
+	$(PYTEST) src/tests/
 
 lint/isort:
 	$(ISORT) --check-only --diff $(SOURCES)
