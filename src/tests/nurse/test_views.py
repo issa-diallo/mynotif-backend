@@ -749,6 +749,11 @@ class TestProfile:
             },
         }
 
+    def test_get_401(self):
+        """The endpoint should be under authentication."""
+        response = APIClient().get(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 @pytest.mark.django_db
 class TestAdminNotificationView:
@@ -757,7 +762,7 @@ class TestAdminNotificationView:
     def test_endpoint_patient(self):
         assert self.url == "/notify/"
 
-    def test_post(self, user, staff_client):
+    def test_post(self, staff_client):
         """Posting to the endpoint should send notifications."""
         with patch_notify() as mock_notify:
             response = staff_client.post(self.url, {}, format="json")
@@ -765,7 +770,7 @@ class TestAdminNotificationView:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
 
-    def test_post_unauthenticated(self, user, client):
+    def test_post_unauthenticated(self):
         """Unauthenticated clients aren't allowed."""
         with patch_notify() as mock_notify:
             response = APIClient().post(self.url, {}, format="json")
@@ -775,7 +780,7 @@ class TestAdminNotificationView:
             "detail": "Authentication credentials were not provided."
         }
 
-    def test_post_only_staff(self, user, client):
+    def test_post_only_staff(self, client):
         """Only staff users are allowed."""
         with patch_notify() as mock_notify:
             response = client.post(self.url, {}, format="json")
