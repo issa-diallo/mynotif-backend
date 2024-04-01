@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -91,7 +91,6 @@ class UserOneSignalProfileViewSet(mixins.CreateModelMixin, viewsets.GenericViewS
 
 class ProfileView(APIView):
     def get(self, request):
-        request.user
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
@@ -134,7 +133,7 @@ class UserCreate(generics.CreateAPIView):
 class AdminNotificationView(APIView):
     """The view dealing with sending push notifications."""
 
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         notify()
