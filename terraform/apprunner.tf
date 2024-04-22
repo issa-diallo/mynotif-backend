@@ -22,6 +22,7 @@ resource "aws_apprunner_service" "backend" {
       image_configuration {
         port = "8000"
         runtime_environment_variables = {
+          SECRET_KEY                  = data.aws_ssm_parameter.secret_key.value
           TIME_ZONE                   = var.env_time_zone
           ALLOWED_HOSTS               = jsonencode(var.env_allowed_hosts)
           CSRF_TRUSTED_ORIGINS        = jsonencode(var.env_csrf_trusted_origins)
