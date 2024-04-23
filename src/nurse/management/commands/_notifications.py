@@ -16,7 +16,7 @@ contents_dict = {
         "Une ordonnance est sur le point d'expirer, "
         "ouvrez l'application pour la consulter."
     ),
-    "en": ("A prescription is about to expire, " "open the app to review."),
+    "en": ("A prescription is about to expire, open the app to review."),
 }
 
 
