@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 
 import sentry_sdk
+from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -28,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-gmzzy_phk&y296hn9k&@st$@^4)_wz1ssaz0y0l@ck8xa=mda*"
+SECRET_KEY = os.environ.get("SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not bool(json.loads(os.environ.get("PRODUCTION", "0")))

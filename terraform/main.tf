@@ -33,7 +33,7 @@ provider "aws" {
 module "terraform_state_backend" {
   source = "cloudposse/tfstate-backend/aws"
   # Cloud Posse recommends pinning every module to a specific version
-  version    = "0.38.1"
+  version    = "1.4.1"
   namespace  = var.app_name
   name       = "terraform"
   attributes = ["state"]
