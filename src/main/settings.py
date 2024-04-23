@@ -210,7 +210,6 @@ STORAGES = {
 }
 
 # Email configuration
-bool(json.loads(os.environ.get("PRODUCTION", "0")))
 EMAIL_USE_TLS = bool(json.loads(os.environ.get("EMAIL_USE_TLS", "0")))
 EMAIL_USE_SSL = bool(json.loads(os.environ.get("EMAIL_USE_SSL", "0")))
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
