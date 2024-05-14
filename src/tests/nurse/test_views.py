@@ -219,6 +219,7 @@ class TestPatient:
             "health_card_number": "12345678910",
             "ss_provider_code": "123456789",
             "birthday": "2023-08-15",
+            "expire_soon_prescriptions": [],
             "prescriptions": [
                 {
                     "id": prescriptions[1].id,
@@ -248,10 +249,31 @@ class TestPatient:
         response = APIClient().get(self.url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    @freeze_time("2024-05-14")
     def test_patient_detail(self, user, client):
         patient = Patient.objects.create(**self.data)
         nurse, _ = Nurse.objects.get_or_create(user=user)
         patient.nurse_set.add(nurse)
+        Prescription.objects.create(
+            **{
+                **prescription_data,
+                **{
+                    "patient": patient,
+                    "start_date": "2024-05-14",
+                    "end_date": "2024-05-16",
+                },
+            }
+        )
+        Prescription.objects.create(
+            **{
+                **prescription_data,
+                **{
+                    "patient": patient,
+                    "start_date": "2022-08-01",
+                    "end_date": "2022-08-10",
+                },
+            }
+        )
         response = client.get(reverse_lazy("patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
@@ -265,7 +287,37 @@ class TestPatient:
             "health_card_number": "12345678910",
             "ss_provider_code": "123456789",
             "birthday": "2023-08-15",
-            "prescriptions": [],
+            "expire_soon_prescriptions": [
+                {
+                    "end_date": "2024-05-16",
+                    "id": 1,
+                    "is_valid": True,
+                    "patient": 1,
+                    "photo_prescription": None,
+                    "prescribing_doctor": "Dr Leen",
+                    "start_date": "2024-05-14",
+                },
+            ],
+            "prescriptions": [
+                {
+                    "end_date": "2024-05-16",
+                    "id": 1,
+                    "is_valid": True,
+                    "patient": 1,
+                    "photo_prescription": None,
+                    "prescribing_doctor": "Dr Leen",
+                    "start_date": "2024-05-14",
+                },
+                {
+                    "end_date": "2022-08-10",
+                    "id": 2,
+                    "is_valid": False,
+                    "patient": 1,
+                    "photo_prescription": None,
+                    "prescribing_doctor": "Dr Leen",
+                    "start_date": "2022-08-01",
+                },
+            ],
         }
 
     def test_patient_delete(self, user, client):
