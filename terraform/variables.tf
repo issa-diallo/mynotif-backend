@@ -36,6 +36,18 @@ variable "domain_name" {
   default     = "ordopro.fr"
 }
 
+variable "vercel_root_records" {
+  type        = list(string)
+  description = "Vercel frontend domain mapping."
+  default     = ["76.76.21.21"]
+}
+
+variable "vercel_www_records" {
+  type        = list(string)
+  description = "Vercel frontend domain mapping."
+  default     = ["cname.vercel-dns.com."]
+}
+
 variable "record_ttl" {
   type        = number
   description = "The TTL of the record"
@@ -105,6 +117,8 @@ variable "env_cors_allowed_origins" {
     "https://mynotif.herokuapp.com",
     "https://mynotif.vercel.app",
     "https://mynotif.netlify.app",
+    "https://ordopro.fr",
+    "https://www.ordopro.fr",
   ]
 }
 
@@ -128,11 +142,6 @@ variable "env_password_reset_confirm_url" {
   default = "reset/password/{uid}/{token}"
 }
 
-variable "env_templated_mail_domain" {
-  type    = string
-  default = "mynotif.netlify.app"
-}
-
 variable "env_templated_site_name" {
   type    = string
   default = "MyNotif"
@@ -148,4 +157,7 @@ variable "lambda_python_runtime" {
 locals {
   image_name        = "${var.app_name}-${var.environment}"
   backend_subdomain = "api.${var.domain_name}"
+  frontend_domain   = var.domain_name
+  ## dynamic environment variables
+  env_templated_mail_domain = local.frontend_domain
 }

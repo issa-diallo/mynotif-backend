@@ -48,7 +48,7 @@ resource "aws_apprunner_service" "backend" {
           AWS_SECRET_ACCESS_KEY = data.aws_ssm_parameter.aws_secret_access_key.value
           # Djoser
           PASSWORD_RESET_CONFIRM_URL = var.env_password_reset_confirm_url
-          TEMPLATED_MAIL_DOMAIN      = var.env_templated_mail_domain
+          TEMPLATED_MAIL_DOMAIN      = local.env_templated_mail_domain
           TEMPLATED_SITE_NAME        = var.env_templated_site_name
           # OneSignal
           ONESIGNAL_APP_ID  = data.aws_ssm_parameter.onesignal_api_id.value
