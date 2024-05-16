@@ -229,6 +229,7 @@ class TestPatient:
                     "end_date": "2022-08-20",
                     "photo_prescription": None,
                     "is_valid": True,
+                    "expiring_soon": False,
                 },
                 {
                     "id": prescriptions[0].id,
@@ -238,6 +239,7 @@ class TestPatient:
                     "end_date": "2022-08-10",
                     "photo_prescription": None,
                     "is_valid": False,
+                    "expiring_soon": False,
                 },
             ],
         }
@@ -292,6 +294,7 @@ class TestPatient:
                     "end_date": "2024-05-16",
                     "id": 1,
                     "is_valid": True,
+                    "expiring_soon": True,
                     "patient": 1,
                     "photo_prescription": None,
                     "prescribing_doctor": "Dr Leen",
@@ -303,6 +306,7 @@ class TestPatient:
                     "end_date": "2024-05-16",
                     "id": 1,
                     "is_valid": True,
+                    "expiring_soon": True,
                     "patient": 1,
                     "photo_prescription": None,
                     "prescribing_doctor": "Dr Leen",
@@ -312,6 +316,7 @@ class TestPatient:
                     "end_date": "2022-08-10",
                     "id": 2,
                     "is_valid": False,
+                    "expiring_soon": False,
                     "patient": 1,
                     "photo_prescription": None,
                     "prescribing_doctor": "Dr Leen",
@@ -371,6 +376,7 @@ class TestPrescription:
                 "photo_prescription": None,
                 "patient": patient.id,
                 "is_valid": False,
+                "expiring_soon": False,
             }
         ]
 
@@ -397,7 +403,26 @@ class TestPrescription:
             "photo_prescription": None,
             "patient": patient.id,
             "is_valid": True,
+            "expiring_soon": False,
         }
+
+    @freeze_time("2022-07-20")
+    def test_expiring_soon(self):
+        patient = Patient.objects.create(lastname="Doe", firstname="John")
+        prescription1 = Prescription.objects.create(
+            prescribing_doctor="Dr Leen",
+            start_date=date(2022, 7, 1),
+            end_date=date(2022, 7, 21),
+            patient=patient,
+        )
+        prescription2 = Prescription.objects.create(
+            prescribing_doctor="Dr Jane",
+            start_date=date(2022, 7, 1),
+            end_date=date(2022, 7, 29),
+            patient=patient,
+        )
+        assert prescription1.expiring_soon() is True
+        assert prescription2.expiring_soon() is False
 
     def test_prescription_delete(self, user, client):
         prescription = Prescription.objects.create(**self.data)

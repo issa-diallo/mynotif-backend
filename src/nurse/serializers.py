@@ -26,6 +26,7 @@ class PatientSerializer(serializers.ModelSerializer):
 
 class PrescriptionSerializer(serializers.ModelSerializer):
     is_valid = serializers.SerializerMethodField()
+    expiring_soon = serializers.SerializerMethodField()
 
     class Meta:
         model = Prescription
@@ -34,6 +35,9 @@ class PrescriptionSerializer(serializers.ModelSerializer):
 
     def get_is_valid(self, obj):
         return obj.is_valid()
+
+    def get_expiring_soon(self, obj):
+        return obj.expiring_soon()
 
 
 class PrescriptionFileSerializer(serializers.ModelSerializer):
