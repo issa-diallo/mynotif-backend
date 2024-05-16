@@ -77,6 +77,12 @@ class Prescription(models.Model):
         """Returns true if the prescription is still valid (e.g. hasn't expired)."""
         return self.start_date <= datetime.now().date() <= self.end_date
 
+    def expiring_soon(self, days=PrescriptionManager.DEFAULT_EXPIRING_SOON_DAYS):
+        """Returns true if the prescription is expiring soon."""
+        today = datetime.now().date()
+        expiring_soon_date = today + timedelta(days=days)
+        return self.end_date <= expiring_soon_date and self.end_date >= today
+
 
 class UserOneSignalProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
