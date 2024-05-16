@@ -6,6 +6,7 @@ from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
 
 class PatientSerializer(serializers.ModelSerializer):
     prescriptions = serializers.SerializerMethodField()
+    expire_soon_prescriptions = serializers.SerializerMethodField()
 
     class Meta:
         model = Patient
@@ -15,6 +16,11 @@ class PatientSerializer(serializers.ModelSerializer):
         prescriptions = Prescription.objects.filter(patient_id=obj.id).order_by(
             "-end_date"
         )
+        return PrescriptionSerializer(prescriptions, many=True).data
+
+    def get_expire_soon_prescriptions(self, obj):
+        prescriptions = Prescription.objects.expiring_soon()
+        prescriptions = prescriptions.filter(patient_id=obj.id).order_by("-end_date")
         return PrescriptionSerializer(prescriptions, many=True).data
 
 
