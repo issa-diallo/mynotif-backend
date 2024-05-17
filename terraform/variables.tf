@@ -127,6 +127,7 @@ variable "env_cors_allowed_origin_regexes" {
   description = "https://github.com/adamchainz/django-cors-headers"
   default = [
     "^https://mynotif-git-[\\w-]+-issa-diallo\\.vercel\\.app$",
+    "^https://mynotif-frontend-git-[\\w-]+-miras\\.vercel\\.app$",
     "^https://deploy-preview-\\d+--mynotif\\.netlify\\.app$",
   ]
 }
