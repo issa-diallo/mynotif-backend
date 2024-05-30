@@ -27,6 +27,7 @@ class PatientAdmin(admin.ModelAdmin):
 class PrescriptionAdmin(admin.ModelAdmin):
     list_display = (
         "prescribing_doctor",
+        "email_doctor",
         "start_date",
         "end_date",
     )

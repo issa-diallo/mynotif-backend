@@ -10,11 +10,13 @@ from nurse.models import Prescription
 def base_prescriptions():
     Prescription.objects.create(
         prescribing_doctor="Dr A",
+        email_doctor="dr.a@example.com",
         start_date=datetime.now().date() - timedelta(days=3),
         end_date=datetime.now().date() + timedelta(days=3),
     )
     Prescription.objects.create(
         prescribing_doctor="Dr B",
+        email_doctor="dr.b@example.com",
         start_date=datetime.now().date() - timedelta(days=10),
         end_date=datetime.now().date() + timedelta(days=9),
     )
@@ -25,6 +27,7 @@ def base_prescriptions():
 def prescription_expiring_today():
     Prescription.objects.create(
         prescribing_doctor="Dr C",
+        email_doctor="dr.c@example.com",
         start_date=datetime.now().date() - timedelta(days=5),
         end_date=datetime.now().date(),
     )
@@ -34,6 +37,7 @@ def prescription_expiring_today():
 def prescription_started_today():
     Prescription.objects.create(
         prescribing_doctor="Dr D",
+        email_doctor="dr.d@example.com",
         start_date=datetime.now().date(),
         end_date=datetime.now().date() + timedelta(days=5),
     )
@@ -78,3 +82,7 @@ class TestPrescriptionManager:
     def test_no_prescriptions(self):
         prescriptions = Prescription.objects.expiring_soon()
         assert prescriptions.count() == 0
+
+    def test_prescriptions_email_doctor(self, base_prescriptions):
+        prescription = Prescription.objects.first()
+        assert prescription.email_doctor == "dr.a@example.com"

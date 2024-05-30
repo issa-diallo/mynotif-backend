@@ -109,6 +109,7 @@ def s3_mock():
 
 prescription_data = {
     "prescribing_doctor": "Dr Leen",
+    "email_doctor": "dr.a@example.com",
     "start_date": "2022-07-15",
     "end_date": "2022-07-31",
 }
@@ -225,6 +226,7 @@ class TestPatient:
                     "id": prescriptions[1].id,
                     "patient": 1,
                     "prescribing_doctor": "Dr Leen",
+                    "email_doctor": "dr.a@example.com",
                     "start_date": "2022-08-10",
                     "end_date": "2022-08-20",
                     "photo_prescription": None,
@@ -235,6 +237,7 @@ class TestPatient:
                     "id": prescriptions[0].id,
                     "patient": 1,
                     "prescribing_doctor": "Dr Leen",
+                    "email_doctor": "dr.a@example.com",
                     "start_date": "2022-08-01",
                     "end_date": "2022-08-10",
                     "photo_prescription": None,
@@ -298,6 +301,7 @@ class TestPatient:
                     "patient": 1,
                     "photo_prescription": None,
                     "prescribing_doctor": "Dr Leen",
+                    "email_doctor": "dr.a@example.com",
                     "start_date": "2024-05-14",
                 },
             ],
@@ -310,6 +314,7 @@ class TestPatient:
                     "patient": 1,
                     "photo_prescription": None,
                     "prescribing_doctor": "Dr Leen",
+                    "email_doctor": "dr.a@example.com",
                     "start_date": "2024-05-14",
                 },
                 {
@@ -320,6 +325,7 @@ class TestPatient:
                     "patient": 1,
                     "photo_prescription": None,
                     "prescribing_doctor": "Dr Leen",
+                    "email_doctor": "dr.a@example.com",
                     "start_date": "2022-08-01",
                 },
             ],
@@ -371,6 +377,7 @@ class TestPrescription:
             {
                 "id": 1,
                 "prescribing_doctor": "Dr Leen",
+                "email_doctor": "dr.a@example.com",
                 "start_date": "2022-07-15",
                 "end_date": "2022-07-31",
                 "photo_prescription": None,
@@ -398,6 +405,7 @@ class TestPrescription:
         assert response.json() == {
             "id": 1,
             "prescribing_doctor": "Dr Leen",
+            "email_doctor": "dr.a@example.com",
             "start_date": "2022-07-15",
             "end_date": "2022-07-31",
             "photo_prescription": None,
