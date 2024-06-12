@@ -1,5 +1,9 @@
+import os
+
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny, IsAdminUser
@@ -16,6 +20,71 @@ from nurse.serializers import (
     UserOneSignalProfileSerializer,
     UserSerializer,
 )
+
+
+class SendEmailToDoctorView(APIView):
+    def post(self, request, pk):
+        prescription = get_object_or_404(Prescription, id=pk)
+
+        patient = prescription.patient
+        if not patient:
+            return Response(
+                {"error": "This prescription has no patient"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        doctor_name = prescription.prescribing_doctor
+        email_doctor = prescription.email_doctor
+        if not email_doctor:
+            return Response(
+                {"error": "Doctor has no email"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = request.user
+        nurse, _ = Nurse.objects.get_or_create(user=user)
+
+        if not nurse.patients.filter(id=patient.id).exists():
+            return Response(
+                {"error": "You are not authorized to send emails to this patient"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not user.first_name or not user.last_name:
+            return Response(
+                {"error": "Please update your profile with your first and last name"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        subject = (
+            f"Demande de renouvellement de l'ordonnance pour "
+            f"{patient.firstname} {patient.lastname}"
+        )
+
+        html_message = render_to_string(
+            "emails/email_template.html",
+            {
+                "doctor_name": doctor_name,
+                "patient_name": f"{patient.firstname} {patient.lastname}",
+                "end_date": prescription.end_date,
+                "health_card_number": patient.health_card_number,
+                "nurse_name": f"{user.first_name} {user.last_name}",
+            },
+        )
+        try:
+            send_mail(
+                subject,
+                "",
+                os.environ.get("EMAIL_HOST_USER"),
+                [email_doctor],
+                fail_silently=False,
+                html_message=html_message,
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return Response({"message": "Email sent"}, status=status.HTTP_200_OK)
 
 
 class PatientViewSet(viewsets.ModelViewSet):

@@ -1,11 +1,13 @@
 from datetime import date
 from pathlib import Path
 from unittest import mock
+from unittest.mock import patch
 
 import boto3
 import pytest
 import rest_framework
 from django.contrib.auth.models import User
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls.base import reverse_lazy
@@ -18,6 +20,8 @@ from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
 
 USERNAME = "username1"
 PASSWORD = "password1"
+FIRSTNAME = "John"
+LASTNAME = "Doe"
 
 
 def patch_notify():
@@ -27,7 +31,21 @@ def patch_notify():
 @pytest.fixture
 def user(db):
     """Creates and yields a new user."""
-    user = User.objects.create(username=USERNAME)
+    user = User.objects.create(
+        username=USERNAME, first_name=FIRSTNAME, last_name=LASTNAME
+    )
+    user.set_password(PASSWORD)
+    user.save()
+    yield user
+    user.delete()
+
+
+@pytest.fixture
+def user2(db):
+    """Creates and yields a new user."""
+    user = User.objects.create(
+        username="username2", first_name=FIRSTNAME, last_name=LASTNAME
+    )
     user.set_password(PASSWORD)
     user.save()
     yield user
@@ -125,6 +143,85 @@ patient_data = {
     "ss_provider_code": "123456789",
     "birthday": "2023-08-15",
 }
+
+
+@pytest.fixture
+def prescription(user):
+    patient = Patient.objects.create(**patient_data)
+    nurse, _ = Nurse.objects.get_or_create(user=user)
+    nurse.patients.add(patient)
+    return Prescription.objects.create(patient=patient, **prescription_data)
+
+
+@pytest.mark.django_db
+class TestSendEmailToDoctorView:
+    prescription = prescription_data
+    url = reverse_lazy("send-email-to-doctor", kwargs={"pk": 1})
+
+    def test_endpoint(self):
+        assert self.url == "/prescription/1/send-email/"
+
+    def test_send_email_to_doctor(self, client, prescription):
+        response = client.post(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {"message": "Email sent"}
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].to == [prescription.email_doctor]
+
+    def test_send_email_to_doctor_404(self, client):
+        response = client.post(self.url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_doctor_has_no_email(self, client, prescription):
+        prescription.email_doctor = ""
+        prescription.save()
+        response = client.post(self.url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data == {"error": "Doctor has no email"}
+
+    def test_user_without_name(self, client, prescription, user):
+        user.first_name = ""
+        user.last_name = ""
+        user.save()
+        response = client.post(self.url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data == {
+            "error": "Please update your profile with your first and last name"
+        }
+
+    def test_send_email_to_doctor_500(self, client, prescription):
+        with patch("nurse.views.send_mail", side_effect=Exception("SMTP Error")):
+            response = client.post(self.url)
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.data == {"error": "SMTP Error"}
+
+    def test_send_email_to_doctor_unauthorized_patient(
+        self, client, user2, prescription
+    ):
+        # Make sure user is a nurse but does not have the patient associated
+        nurse = Nurse.objects.create(user=user2)
+        # Ensure the nurse is not associated with the patient
+        assert not nurse.patients.filter(id=prescription.patient.id).exists()
+        # Authenticate as the nurse
+        client.force_authenticate(user=user2)
+        response = client.post(self.url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.data == {
+            "error": "You are not authorized to send emails to this patient"
+        }
+
+    def test_send_email_to_doctor_no_patient(self, client):
+        # Create a prescription with no patient
+        Prescription.objects.create(
+            prescribing_doctor="Dr Leen",
+            email_doctor="dr.a@example.com",
+            start_date="2022-07-15",
+            end_date="2022-07-31",
+            patient=None,
+        )
+        response = client.post(self.url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data == {"error": "This prescription has no patient"}
 
 
 @pytest.mark.django_db
@@ -589,8 +686,8 @@ class TestUser:
             {
                 "id": 1,
                 "username": user.username,
-                "first_name": "",
-                "last_name": "",
+                "first_name": "John",
+                "last_name": "Doe",
                 "email": "",
                 "is_staff": False,
                 "nurse": {
@@ -620,8 +717,8 @@ class TestUser:
         assert response.json() == {
             "id": 1,
             "username": user.username,
-            "first_name": "",
-            "last_name": "",
+            "first_name": "John",
+            "last_name": "Doe",
             "email": "",
             "is_staff": False,
             "nurse": {
@@ -819,8 +916,8 @@ class TestProfile:
         assert response.json() == {
             "id": 1,
             "username": USERNAME,
-            "first_name": "",
-            "last_name": "",
+            "first_name": "John",
+            "last_name": "Doe",
             "email": "",
             "is_staff": False,
             "nurse": {
