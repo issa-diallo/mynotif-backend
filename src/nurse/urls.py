@@ -8,6 +8,7 @@ from nurse.views import (
     PrescriptionFileView,
     PrescriptionViewSet,
     ProfileView,
+    SendEmailToDoctorView,
     UserOneSignalProfileViewSet,
     UserViewSet,
 )
@@ -27,6 +28,11 @@ urlpatterns = [
         name="prescription-upload",
     ),
     path("notify/", AdminNotificationView.as_view(), name="notify"),
+    path(
+        "prescription/<int:pk>/send-email/",
+        SendEmailToDoctorView.as_view(),
+        name="send-email-to-doctor",
+    ),
 ]
 
 urlpatterns += router.urls
