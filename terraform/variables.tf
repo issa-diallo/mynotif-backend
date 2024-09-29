@@ -4,13 +4,6 @@ variable "aws_region" {
   default     = "eu-west-3"
 }
 
-variable "app_runner_region" {
-  type        = string
-  description = "App Runner Region"
-  # App Runner isn't currently available in `eu-west-3`
-  default = "eu-central-1"
-}
-
 variable "app_name" {
   type        = string
   description = "Application Name"
@@ -61,7 +54,7 @@ variable "env_allowed_hosts" {
   default = [
     "127.0.0.1",
     "localhost",
-    ".eu-central-1.awsapprunner.com",
+    ".eu-west-3.awsapprunner.com",
     "api.ordopro.fr",
   ]
 }
@@ -72,7 +65,7 @@ variable "env_csrf_trusted_origins" {
   default = [
     "http://127.0.0.1",
     "http://localhost",
-    "https://*.eu-central-1.awsapprunner.com",
+    "https://*.eu-west-3.awsapprunner.com",
     "https://api.ordopro.fr",
   ]
 }
