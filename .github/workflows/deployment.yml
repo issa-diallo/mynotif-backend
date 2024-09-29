@@ -69,4 +69,6 @@ jobs:
       - run: make devops/terraform/plan
       - name: Terraform Apply
         if: github.ref == env.PRODUCTION_REF
-        run: make devops/terraform/apply
+        run: |
+          make devops/terraform/apply
+          make devops/aws/redeploy/apprunner
