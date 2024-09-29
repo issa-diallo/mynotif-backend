@@ -1,5 +1,4 @@
 resource "aws_apprunner_auto_scaling_configuration_version" "backend" {
-  provider                        = aws.app_runner
   auto_scaling_configuration_name = "${var.app_name}-${var.environment}"
   min_size                        = 1
   max_size                        = 1
@@ -8,7 +7,6 @@ resource "aws_apprunner_auto_scaling_configuration_version" "backend" {
 resource "aws_apprunner_service" "backend" {
   auto_scaling_configuration_arn = aws_apprunner_auto_scaling_configuration_version.backend.arn
   service_name                   = "${var.app_name}-runner-${var.environment}"
-  provider                       = aws.app_runner
   instance_configuration {
     cpu    = "0.25 vCPU"
     memory = "0.5 GB"
@@ -62,7 +60,6 @@ resource "aws_apprunner_service" "backend" {
 }
 
 resource "aws_apprunner_custom_domain_association" "backend" {
-  provider    = aws.app_runner
   domain_name = local.backend_subdomain
   service_arn = aws_apprunner_service.backend.arn
 }
