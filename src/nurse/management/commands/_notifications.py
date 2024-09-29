@@ -34,12 +34,13 @@ def notify():
         **filter_args
     ).values_list("subscription_id", flat=True)
     subscription_ids |= set(subscription_id_list)
-    if subscription_ids:
-        notification_body = {
-            "contents": contents_dict,
-            "include_subscription_ids": subscription_ids,
-            "name": "PRESCRIPTION EXPIRE SOON",
-        }
+    if not subscription_ids:
+        return
+    notification_body = {
+        "contents": contents_dict,
+        "include_subscription_ids": subscription_ids,
+        "name": "PRESCRIPTION EXPIRE SOON",
+    }
     get_client().send_notification(notification_body)
 
 
