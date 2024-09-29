@@ -6,6 +6,7 @@ module "lambda_function" {
   runtime        = var.lambda_python_runtime
   create_package = true
   source_path    = "../src/lambdas"
+  timeout        = 10
   environment_variables = {
     BACKEND_URL     = "https://${aws_apprunner_service.backend.service_url}"
     NOTIFY_USERNAME = data.aws_ssm_parameter.notify_username.value
