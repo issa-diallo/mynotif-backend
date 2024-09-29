@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from unittest import mock
 
+import httpx
 import pytest
 from django.test import override_settings
 
@@ -83,7 +84,7 @@ class TestNotifications:
             ONESIGNAL_APP_ID="ONESIGNAL_APP_ID", ONESIGNAL_API_KEY="ONESIGNAL_API_KEY"
         ):
             _notifications.notify()
-        expected_include_subscription_ids = {"123", "456", "789"}
+        expected_include_subscription_ids = ["123", "456", "789"]
         expected_notification_body = {
             "contents": {
                 "fr": "Une ordonnance est sur le point d'expirer, "
@@ -98,7 +99,36 @@ class TestNotifications:
         ]
 
     @pytest.mark.django_db
+    def test_notify_check_request(self, base_prescriptions):
+        """
+        This is a regression test for a TypeError exception, the error was:
+        ```
+        Object of type set is not JSON serializable.
+        ```
+        We have to mock deeper to demonstrate it since it happens within the httpx
+        library as the payload gets serialized.
+        """
+        mock_httpx_send = mock.Mock(return_value=mock.Mock(status_code=200))
+        with mock.patch(
+            "httpx.Client.send", mock_httpx_send
+        ) as mock_httpx_send, override_settings(
+            ONESIGNAL_APP_ID="ONESIGNAL_APP_ID", ONESIGNAL_API_KEY="ONESIGNAL_API_KEY"
+        ):
+            _notifications.notify()
+        # retrieve the request object from the mock
+        sent_request = mock_httpx_send.call_args[0][0]
+        assert isinstance(sent_request, httpx.Request)
+        assert sent_request.method == "POST"
+        assert sent_request.url == "https://onesignal.com/api/v1/notifications"
+
+    @pytest.mark.django_db
     def test_notify_no_subscription(self):
+        """
+        This is a regression test for a UnboundLocalError exception, the error was:
+        ```
+        cannot access local variable where it is not associated with a value
+        ```
+        """
         with mock.patch(
             f"{client_path}.send_notification"
         ) as mock_send_notification, override_settings(

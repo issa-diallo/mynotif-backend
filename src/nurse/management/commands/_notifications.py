@@ -22,7 +22,6 @@ contents_dict = {
 
 def notify():
     """Notify nurses that have prescriptions to expire soon."""
-    subscription_ids = set()
     prescriptions = Prescription.objects.expiring_soon()
     user_in = [
         nurse.user
@@ -30,12 +29,15 @@ def notify():
         for nurse in prescription.patient.nurse_set.all()
     ]
     filter_args = {"user__in": user_in}
-    subscription_id_list = UserOneSignalProfile.objects.filter(
-        **filter_args
-    ).values_list("subscription_id", flat=True)
-    subscription_ids |= set(subscription_id_list)
-    if not subscription_ids:
+    subscription_ids = (
+        UserOneSignalProfile.objects.filter(**filter_args)
+        .values_list("subscription_id", flat=True)
+        .distinct()
+    )
+    if not subscription_ids.exists():
         return
+    # list for serializing (HTTP request) and ordering for reliable testing
+    subscription_ids = list(subscription_ids.order_by("subscription_id"))
     notification_body = {
         "contents": contents_dict,
         "include_subscription_ids": subscription_ids,
