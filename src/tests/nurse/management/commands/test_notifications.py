@@ -97,6 +97,16 @@ class TestNotifications:
             mock.call(expected_notification_body)
         ]
 
+    @pytest.mark.django_db
+    def test_notify_no_subscription(self):
+        with mock.patch(
+            f"{client_path}.send_notification"
+        ) as mock_send_notification, override_settings(
+            ONESIGNAL_APP_ID="ONESIGNAL_APP_ID", ONESIGNAL_API_KEY="ONESIGNAL_API_KEY"
+        ):
+            _notifications.notify()
+        assert mock_send_notification.call_count == 0
+
     def test_get_client_with_valid_settings(self):
         with override_settings(
             ONESIGNAL_APP_ID=ONESIGNAL_APP_ID,
