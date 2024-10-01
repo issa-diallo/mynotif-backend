@@ -43,11 +43,11 @@ virtualenv/test: virtualenv
 
 requirements.txt: | $(VIRTUAL_ENV)
 	$(PYTHON) -m pip install --upgrade pip-tools
-	$(PIP_COMPILE) --upgrade --output-file $@
+	$(PIP_COMPILE) --upgrade --no-strip-extras --output-file $@
 
-src/lambda/requirements.txt: | $(VIRTUAL_ENV)
+src/lambdas/requirements.txt: | $(VIRTUAL_ENV)
 	$(PYTHON) -m pip install --upgrade pip-tools
-	$(PIP_COMPILE) src/lambda/requirements.in --upgrade --output-file $@
+	$(PIP_COMPILE) src/lambdas/requirements.in --upgrade --no-strip-extras --output-file $@
 
 clean:
 	rm -rf venv/ .pytest_cache/
