@@ -20,13 +20,12 @@ DEPLOYMENT_AUTOMATION_ROLE=arn:aws:iam::$(AWS_ACCOUNT_ID):role/mynotif-deploymen
 SESSION_NAME=deployment-session
 AWS_PROFILE?=default
 REGION=eu-west-3
-APPRUNNER_REGION=eu-west-3
 REGISTRY=$(AWS_ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com
 APP_NAME=mynotif-backend
 IMAGE_NAME=$(APP_NAME)-production
 DOCKER_IMAGE=$(REGISTRY)/$(IMAGE_NAME)
 SOURCES=src/
-APPRUNNER_ARN=arn:aws:apprunner:$(APPRUNNER_REGION):$(AWS_ACCOUNT_ID):service/$(APP_NAME)-runner-production/34b4084ddade4d85be8e625e6b55ea5a
+APPRUNNER_ARN=arn:aws:apprunner:$(REGION):$(AWS_ACCOUNT_ID):service/$(APP_NAME)-runner-production/18bebc83a64f4823a5dfbcbb8c98bfbe
 
 
 all: virtualenv
@@ -144,4 +143,4 @@ devops/terraform/destroy:
 	terraform -chdir=terraform destroy -auto-approve
 
 devops/aws/redeploy/apprunner:
-	aws apprunner start-deployment --service-arn $(APPRUNNER_ARN) --region $(APPRUNNER_REGION)
+	aws apprunner start-deployment --service-arn $(APPRUNNER_ARN) --region $(REGION)
