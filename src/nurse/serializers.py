@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.validators import RegexValidator
 from rest_framework import serializers
 
 from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
@@ -22,6 +23,18 @@ class PatientSerializer(serializers.ModelSerializer):
         prescriptions = Prescription.objects.expiring_soon()
         prescriptions = prescriptions.filter(patient_id=obj.id).order_by("-end_date")
         return PrescriptionSerializer(prescriptions, many=True).data
+
+
+class PrescriptionEmailSerializer(serializers.Serializer):
+    additional_info = serializers.CharField(
+        required=True,
+        max_length=1000,
+        validators=[
+            RegexValidator(
+                regex=r"^(?!.*[<>]).*$",
+            )
+        ],
+    )
 
 
 class PrescriptionSerializer(serializers.ModelSerializer):
