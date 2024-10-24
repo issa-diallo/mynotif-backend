@@ -15,6 +15,7 @@ from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
 from nurse.serializers import (
     NurseSerializer,
     PatientSerializer,
+    PrescriptionEmailSerializer,
     PrescriptionFileSerializer,
     PrescriptionSerializer,
     UserOneSignalProfileSerializer,
@@ -24,8 +25,10 @@ from nurse.serializers import (
 
 class SendEmailToDoctorView(APIView):
     def post(self, request, pk):
-        prescription = get_object_or_404(Prescription, id=pk)
+        serializer = PrescriptionEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
+        prescription = get_object_or_404(Prescription, id=pk)
         patient = prescription.patient
         if not patient:
             return Response(
@@ -33,7 +36,6 @@ class SendEmailToDoctorView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        doctor_name = prescription.prescribing_doctor
         email_doctor = prescription.email_doctor
         if not email_doctor:
             return Response(
@@ -55,19 +57,15 @@ class SendEmailToDoctorView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        subject = (
-            f"Demande de renouvellement de l'ordonnance pour "
-            f"{patient.firstname} {patient.lastname}"
-        )
+        subject = "Renouveler ordonnance"
 
         html_message = render_to_string(
             "emails/email_template.html",
             {
-                "doctor_name": doctor_name,
                 "patient_name": f"{patient.firstname} {patient.lastname}",
-                "end_date": prescription.end_date,
-                "health_card_number": patient.health_card_number,
+                "patient_birth_date": patient.birthday,
                 "nurse_name": f"{user.first_name} {user.last_name}",
+                "additional_info": serializer.validated_data["additional_info"],
             },
         )
         try:

@@ -14,22 +14,24 @@
     <main>
         <h1>Renouvellement d'ordonnance</h1>
         <div>
-            <p>Bonjour Dr. {{ doctor_name }},</p>
+            <p>Bonjour,</p>
 
-            <p>Je vous écris pour demander le renouvellement de l'ordonnance du patient {{ patient_name }}.</p>
+            <p>Pourriez-vous s'il vous plaît, renouveller l'ordonnance de ce patient :
+                <ul>
+                    <li>Patient : {{ patient_name }}</li>
+                    <li>Date de naissance : {{ patient_birth_date }}</li>
+                </ul>
+            </p>
 
-            <p>Voici les détails de l'ordonnance actuelle :</p>
-            <ul>
-                <li>Date de fin : {{ end_date }}</li>
-                <li>Patient : {{ patient_name }}</li>
-                <li>Carte vitale : {{ health_card_number }}</li>
-            </ul>
-            <p>Merci de bien vouloir procéder au renouvellement.</p>
+            <p>Détails des soins :</p>
+            <div>
+                <pre>{{ additional_info }}</pre>
+            </div>
         </div>
         <footer>
             <p>Cordialement,</p>
             <p>{{ nurse_name }}<br>
-            Infirmière</p>
+            Infirmière Libérale</p>
         </footer>
     </main>
 </body>

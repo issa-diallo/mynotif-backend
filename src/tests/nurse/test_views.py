@@ -155,27 +155,40 @@ def prescription(user):
 
 @pytest.mark.django_db
 class TestSendEmailToDoctorView:
-    prescription = prescription_data
+    valid_payload = {"additional_info": "This is a valid message."}
+    invalid_payload = {"additional_info": "This message contains <invalid> characters."}
     url = reverse_lazy("send-email-to-doctor", kwargs={"pk": 1})
 
     def test_endpoint(self):
         assert self.url == "/prescription/1/send-email/"
 
-    def test_send_email_to_doctor(self, client, prescription):
-        response = client.post(self.url)
+    def test_send_email_to_doctor(self, client, prescription, user):
+        response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {"message": "Email sent"}
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == [prescription.email_doctor]
 
+        # Check the rendered email message
+        email = mail.outbox[0]
+        assert "Renouveler ordonnance" in email.subject
+        assert email.alternatives[0][1] == "text/html"
+        html_body = email.alternatives[0][0]
+
+        assert "<li>Patient : John Leen</li>" in html_body
+        assert "<li>Date de naissance : Aug. 15, 2023</li>" in html_body
+        assert "<pre>This is a valid message.</pre>" in html_body
+        assert "<p>John Doe<br>" in html_body
+        assert "Infirmière Libérale</p>" in html_body
+
     def test_send_email_to_doctor_404(self, client):
-        response = client.post(self.url)
+        response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_doctor_has_no_email(self, client, prescription):
         prescription.email_doctor = ""
         prescription.save()
-        response = client.post(self.url)
+        response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data == {"error": "Doctor has no email"}
 
@@ -183,7 +196,7 @@ class TestSendEmailToDoctorView:
         user.first_name = ""
         user.last_name = ""
         user.save()
-        response = client.post(self.url)
+        response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data == {
             "error": "Please update your profile with your first and last name"
@@ -191,7 +204,7 @@ class TestSendEmailToDoctorView:
 
     def test_send_email_to_doctor_500(self, client, prescription):
         with patch("nurse.views.send_mail", side_effect=Exception("SMTP Error")):
-            response = client.post(self.url)
+            response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data == {"error": "SMTP Error"}
 
@@ -204,7 +217,7 @@ class TestSendEmailToDoctorView:
         assert not nurse.patients.filter(id=prescription.patient.id).exists()
         # Authenticate as the nurse
         client.force_authenticate(user=user2)
-        response = client.post(self.url)
+        response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.data == {
             "error": "You are not authorized to send emails to this patient"
@@ -219,9 +232,17 @@ class TestSendEmailToDoctorView:
             end_date="2022-07-31",
             patient=None,
         )
-        response = client.post(self.url)
+        response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.data == {"error": "This prescription has no patient"}
+
+    def test_send_email_to_doctor_invalid_additional_info(
+        self, client, prescription, user
+    ):
+        response = client.post(self.url, self.invalid_payload)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "additional_info" in response.data
+        assert "Enter a valid value." in response.data["additional_info"]
 
 
 @pytest.mark.django_db
