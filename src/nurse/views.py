@@ -1,5 +1,3 @@
-import os
-
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -51,9 +49,14 @@ class SendEmailToDoctorView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if not user.first_name or not user.last_name:
+        if not user.first_name or not user.last_name or not user.email:
             return Response(
-                {"error": "Please update your profile with your first and last name"},
+                {
+                    "error": (
+                        "Please update your profile with your first and last name "
+                        "and email"
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -72,7 +75,7 @@ class SendEmailToDoctorView(APIView):
             send_mail(
                 subject,
                 "",
-                os.environ.get("EMAIL_HOST_USER"),
+                user.email,
                 [email_doctor],
                 fail_silently=False,
                 html_message=html_message,
