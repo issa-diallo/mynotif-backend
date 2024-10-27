@@ -1,4 +1,4 @@
-FROM python:3.11-alpine AS base
+FROM python:3.13-alpine AS base
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY src /app/src
 RUN make run/collectstatic
 
 
-FROM python:3.11-alpine
+FROM python:3.13-alpine
 
 ARG PORT=8000
 ARG VERSION
