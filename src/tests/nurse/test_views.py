@@ -22,6 +22,7 @@ USERNAME = "username1"
 PASSWORD = "password1"
 FIRSTNAME = "John"
 LASTNAME = "Doe"
+EMAIL = "sendemail@ordopro.fr"
 
 
 def patch_notify():
@@ -32,7 +33,7 @@ def patch_notify():
 def user(db):
     """Creates and yields a new user."""
     user = User.objects.create(
-        username=USERNAME, first_name=FIRSTNAME, last_name=LASTNAME
+        username=USERNAME, first_name=FIRSTNAME, last_name=LASTNAME, email=EMAIL
     )
     user.set_password(PASSWORD)
     user.save()
@@ -44,7 +45,7 @@ def user(db):
 def user2(db):
     """Creates and yields a new user."""
     user = User.objects.create(
-        username="username2", first_name=FIRSTNAME, last_name=LASTNAME
+        username="username2", first_name=FIRSTNAME, last_name=LASTNAME, email=EMAIL
     )
     user.set_password(PASSWORD)
     user.save()
@@ -168,6 +169,7 @@ class TestSendEmailToDoctorView:
         assert response.data == {"message": "Email sent"}
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == [prescription.email_doctor]
+        assert mail.outbox[0].from_email == user.email
 
         # Check the rendered email message
         email = mail.outbox[0]
@@ -195,11 +197,14 @@ class TestSendEmailToDoctorView:
     def test_user_without_name(self, client, prescription, user):
         user.first_name = ""
         user.last_name = ""
+        user.email = ""
         user.save()
         response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data == {
-            "error": "Please update your profile with your first and last name"
+            "error": (
+                "Please update your profile with your first and last name and email"
+            )
         }
 
     def test_send_email_to_doctor_500(self, client, prescription):
@@ -709,7 +714,7 @@ class TestUser:
                 "username": user.username,
                 "first_name": "John",
                 "last_name": "Doe",
-                "email": "",
+                "email": EMAIL,
                 "is_staff": False,
                 "nurse": {
                     "address": "",
@@ -740,7 +745,7 @@ class TestUser:
             "username": user.username,
             "first_name": "John",
             "last_name": "Doe",
-            "email": "",
+            "email": EMAIL,
             "is_staff": False,
             "nurse": {
                 "id": 1,
@@ -825,7 +830,7 @@ class TestUser:
         assert response.json() == {
             "id": 1,
             "username": user.username,
-            "email": "",
+            "email": EMAIL,
             "is_staff": False,
             **data,
             "nurse": {
@@ -939,7 +944,7 @@ class TestProfile:
             "username": USERNAME,
             "first_name": "John",
             "last_name": "Doe",
-            "email": "",
+            "email": EMAIL,
             "is_staff": False,
             "nurse": {
                 "address": "",
