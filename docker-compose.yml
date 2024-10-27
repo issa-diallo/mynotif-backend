@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+
+  web:
+    build:
+      context: .
+      args:
+        - PORT=8000
+        - VERSION=${VERSION:-latest}
+    ports:
+      - "8000:8000"
+    environment:
+      - EMAIL_HOST=mailhog
+      - EMAIL_PORT=1025
+      - EMAIL_HOST_USER
+      - EMAIL_HOST_PASSWORD
+      - DATABASE_ENGINE
+      - DATABASE_NAME
+      - DATABASE_USER
+      - DATABASE_PASSWORD
+      - DATABASE_HOST
+      - DATABASE_PORT
+    env_file:
+      - .env
+    depends_on:
+      - mailhog
+    volumes:
+      - ./src:/app/src:rw
+      - static_files:/app/src/staticfiles:rw
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"
+
+volumes:
+  static_files:
