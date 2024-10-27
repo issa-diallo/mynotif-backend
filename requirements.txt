@@ -32,13 +32,13 @@ charset-normalizer==3.4.0
     # via requests
 cryptography==43.0.3
     # via social-auth-core
-cython==0.29.37
+cython==3.0.11
     # via mynotif (setup.py)
 defusedxml==0.8.0rc2
     # via
     #   python3-openid
     #   social-auth-core
-django==4.2.16
+django==5.0.9
     # via
     #   django-cors-headers
     #   django-extensions
