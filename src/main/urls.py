@@ -34,6 +34,14 @@ from . import views as main_views
 router = routers.DefaultRouter()
 router.registry.extend(nurse_router.registry)
 
+v2_urlpatterns = [
+    path("account/register", nurse_views.UserCreateV2.as_view(), name="register"),
+    path(
+        "api-token-auth/",
+        main_views.CustomObtainAuthToken.as_view(),
+        name="api_token_auth",
+    ),
+]
 
 urlpatterns = [
     path("version/", main_views.version, name="version"),
@@ -64,4 +72,5 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="schema-redoc",
     ),
+    path("api/v2/", include((v2_urlpatterns, "v2"), namespace="v2")),
 ]

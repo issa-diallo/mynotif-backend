@@ -129,6 +129,31 @@ class UserSerializer(serializers.ModelSerializer):
         return NurseSerializer(nurse).data
 
 
+class UserSerializerV2(UserSerializer):
+    """
+    V2 serializer inherits from V1 but excludes `username` field.
+    Automatically sets `username` to the provided `email`.
+    """
+
+    class Meta(UserSerializer.Meta):
+        """Exclude `username` from fields."""
+
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "password",
+            "is_staff",
+            "nurse",
+        )
+
+    def create(self, validated_data):
+        """Automatically set `username` to `email`."""
+        validated_data["username"] = validated_data["email"]
+        return super().create(validated_data)
+
+
 class UserOneSignalProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserOneSignalProfile
