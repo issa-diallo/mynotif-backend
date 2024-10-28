@@ -22,7 +22,7 @@ USERNAME = "username1"
 PASSWORD = "password1"
 FIRSTNAME = "John"
 LASTNAME = "Doe"
-EMAIL = "sendemail@ordopro.fr"
+EMAIL = "johndoe@example.fr"
 
 
 def patch_notify():
@@ -169,12 +169,13 @@ class TestSendEmailToDoctorView:
         assert response.data == {"message": "Email sent"}
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == [prescription.email_doctor]
-        assert mail.outbox[0].from_email == user.email
+        assert mail.outbox[0].from_email == "webmaster@localhost"
 
         # Check the rendered email message
         email = mail.outbox[0]
         assert "Renouveler ordonnance" in email.subject
         assert email.alternatives[0][1] == "text/html"
+        assert email.reply_to == [user.email]
         html_body = email.alternatives[0][0]
 
         assert "<li>Patient : John Leen</li>" in html_body
@@ -208,7 +209,9 @@ class TestSendEmailToDoctorView:
         }
 
     def test_send_email_to_doctor_500(self, client, prescription):
-        with patch("nurse.views.send_mail", side_effect=Exception("SMTP Error")):
+        with patch(
+            "nurse.views.send_mail_with_reply", side_effect=Exception("SMTP Error")
+        ):
             response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data == {"error": "SMTP Error"}

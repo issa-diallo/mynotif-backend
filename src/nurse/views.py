@@ -1,5 +1,6 @@
+import os
+
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from rest_framework import generics, mixins, status, viewsets
@@ -19,6 +20,7 @@ from nurse.serializers import (
     UserOneSignalProfileSerializer,
     UserSerializer,
 )
+from nurse.utils.email import send_mail_with_reply
 
 
 class SendEmailToDoctorView(APIView):
@@ -72,11 +74,12 @@ class SendEmailToDoctorView(APIView):
             },
         )
         try:
-            send_mail(
+            send_mail_with_reply(
                 subject,
                 "",
-                user.email,
+                os.environ.get("EMAIL_HOST_USER"),
                 [email_doctor],
+                reply_to_email=user.email,
                 fail_silently=False,
                 html_message=html_message,
             )
