@@ -23,6 +23,7 @@ PASSWORD = "password1"
 FIRSTNAME = "John"
 LASTNAME = "Doe"
 EMAIL = "johndoe@example.fr"
+EMAIL_HOST_USER = "support@ordopro.fr"
 
 
 def patch_notify():
@@ -163,13 +164,14 @@ class TestSendEmailToDoctorView:
     def test_endpoint(self):
         assert self.url == "/prescription/1/send-email/"
 
+    @override_settings(EMAIL_HOST_USER=EMAIL_HOST_USER)
     def test_send_email_to_doctor(self, client, prescription, user):
         response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {"message": "Email sent"}
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == [prescription.email_doctor]
-        assert mail.outbox[0].from_email == "webmaster@localhost"
+        assert mail.outbox[0].from_email == EMAIL_HOST_USER
 
         # Check the rendered email message
         email = mail.outbox[0]
