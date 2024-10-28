@@ -1,6 +1,7 @@
 # OrdoPro backend
 
 [![Tests](https://github.com/mynotif/mynotif-backend/actions/workflows/tests.yml/badge.svg)](https://github.com/mynotif/mynotif-backend/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/github/mynotif/mynotif-backend/graph/badge.svg?token=RPS12B9119)](https://codecov.io/github/mynotif/mynotif-backend)
 [![Deployment](https://github.com/mynotif/mynotif-backend/actions/workflows/deployment.yml/badge.svg)](https://github.com/mynotif/mynotif-backend/actions/workflows/deployment.yml)
 
 ## URLs
