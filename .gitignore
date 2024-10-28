@@ -4,6 +4,8 @@ __pycache__
 db.sqlite3
 venv
 *.egg-info
+.coverage
+coverage.xml
 
 # Local .terraform directories
 **/.terraform/*

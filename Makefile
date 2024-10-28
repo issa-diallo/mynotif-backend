@@ -52,7 +52,7 @@ clean:
 	rm -rf venv/ .pytest_cache/
 
 unittest:
-	$(PYTEST) --doctest-modules --cov src/ --cov-report term --cov-report html src/
+	$(PYTEST) --doctest-modules --cov src/ --cov-report term --cov-report html --cov-report xml src/
 
 lint/isort:
 	$(ISORT) --check-only --diff $(SOURCES)
