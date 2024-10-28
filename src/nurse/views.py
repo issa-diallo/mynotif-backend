@@ -1,5 +1,4 @@
-import os
-
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -77,7 +76,7 @@ class SendEmailToDoctorView(APIView):
             send_mail_with_reply(
                 subject,
                 "",
-                os.environ.get("EMAIL_HOST_USER"),
+                settings.EMAIL_HOST_USER,
                 [email_doctor],
                 reply_to_email=user.email,
                 fail_silently=False,
