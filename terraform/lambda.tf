@@ -1,6 +1,6 @@
 module "lambda_function" {
   source         = "terraform-aws-modules/lambda/aws"
-  version        = "6.0.0"
+  version        = "7.14.0"
   function_name  = "${var.app_name}-onesignal-notifications"
   handler        = "notify.handler"
   runtime        = var.lambda_python_runtime
