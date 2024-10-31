@@ -377,6 +377,23 @@ class TestPatient:
 
         assert response.json() == [expected_data]
 
+    def test_patient_list_with_fields(self, user, client):
+        patient = Patient.objects.create(**self.data)
+        nurse, _ = Nurse.objects.get_or_create(user=user)
+        patient.nurse_set.add(nurse)
+        fields = "id,firstname,lastname,city,zip_code,street"
+        response = client.get(self.url, {"fields": fields})
+        assert response.status_code == status.HTTP_200_OK
+        expected_data = {
+            "id": 1,
+            "firstname": "John",
+            "lastname": "Leen",
+            "street": "3 place du cerdan",
+            "zip_code": "95400",
+            "city": "courdimanche",
+        }
+        assert response.json() == [expected_data]
+
     def test_patient_list_401(self):
         """The endpoint should be under authentication."""
         response = APIClient().get(self.url)
