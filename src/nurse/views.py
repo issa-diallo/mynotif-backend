@@ -22,6 +22,34 @@ from nurse.serializers import (
 from nurse.utils.email import send_mail_with_reply
 
 
+class DynamicFieldsMixin:
+    """
+    A mixin that allows specifying a subset of fields to be returned by the serializer.
+
+    This mixin checks for a 'fields' parameter in the query. If 'fields' is present,
+    it should be a comma-separated list of field names (e.g., 'id,firstname,lastname').
+    This list is then passed to the serializer to limit the serialized fields to only
+    those specified.
+
+    Example:
+        GET /api/resource/?fields=id,name,description
+        This would return only the specified fields for each resource.
+
+    Methods:
+        get_serializer(*args, **kwargs): Returns a serializer instance with dynamically
+                                         filtered fields.
+    """
+
+    def get_serializer(self, *args, **kwargs):
+        # Retrieve `fields` from query parameters
+        fields = self.request.query_params.get("fields")
+        if fields:
+            # Convert comma-separated string to list
+            fields = fields.split(",")
+            kwargs["fields"] = fields
+        return super().get_serializer(*args, **kwargs)
+
+
 class SendEmailToDoctorView(APIView):
     def post(self, request, pk):
         serializer = PrescriptionEmailSerializer(data=request.data)
@@ -90,7 +118,7 @@ class SendEmailToDoctorView(APIView):
         return Response({"message": "Email sent"}, status=status.HTTP_200_OK)
 
 
-class PatientViewSet(viewsets.ModelViewSet):
+class PatientViewSet(DynamicFieldsMixin, viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
 
