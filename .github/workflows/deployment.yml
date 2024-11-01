@@ -59,6 +59,10 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          # 3.13 isn't yet available in lambdas
+          python-version: 3.12
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false

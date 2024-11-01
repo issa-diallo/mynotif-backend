@@ -145,7 +145,7 @@ variable "env_templated_site_name" {
 variable "lambda_python_runtime" {
   description = "AWS Lambda Python runtime version"
   type        = string
-  default     = "python3.10"
+  default     = "python3.12"
 }
 
 locals {
