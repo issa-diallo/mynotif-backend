@@ -11,11 +11,11 @@ from rest_framework.views import APIView
 from nurse.management.commands._notifications import notify
 from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
 from nurse.serializers import (
+    ExpandedPrescriptionSerializer,
     NurseSerializer,
     PatientSerializer,
     PrescriptionEmailSerializer,
     PrescriptionFileSerializer,
-    PrescriptionSerializer,
     UserOneSignalProfileSerializer,
     UserSerializer,
 )
@@ -139,7 +139,7 @@ class PatientViewSet(DynamicFieldsMixin, viewsets.ModelViewSet):
 
 class PrescriptionViewSet(viewsets.ModelViewSet):
     queryset = Prescription.objects.all()
-    serializer_class = PrescriptionSerializer
+    serializer_class = ExpandedPrescriptionSerializer
 
     def get_queryset(self):
         """Only the prescriptions associated to the logged in nurse."""
