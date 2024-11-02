@@ -34,6 +34,15 @@ from . import views as main_views
 router = routers.DefaultRouter()
 router.registry.extend(nurse_router.registry)
 
+v1_urlpatterns = [
+    path("version/", main_views.version, name="version"),
+    path("account/", include("rest_framework.urls")),
+    path("account/register", nurse_views.UserCreate.as_view(), name="register"),
+    path("auth/", include(("djoser.urls", "auth"), namespace="auth")),
+    path("", include("nurse.urls"), name="nurse"),
+    path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
+]
+
 v2_urlpatterns = [
     path("account/register", nurse_views.UserCreateV2.as_view(), name="register"),
     path(
@@ -44,13 +53,8 @@ v2_urlpatterns = [
 ]
 
 urlpatterns = [
-    path("version/", main_views.version, name="version"),
     path("admin/", admin.site.urls),
-    path("account/", include("rest_framework.urls")),
-    path("account/register", nurse_views.UserCreate.as_view(), name="register"),
-    path("auth/", include(("djoser.urls", "auth"), namespace="auth")),
     path("", include("nurse.urls"), name="nurse"),
-    path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
     path("", include(router.urls)),
     path(
         "swagger.json",
@@ -72,5 +76,8 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="schema-redoc",
     ),
+    # TODO include the old route until the frontend is done migrating, refs #187
+    path("", include(v1_urlpatterns)),
+    path("api/v1/", include((v1_urlpatterns, "v1"), namespace="v1")),
     path("api/v2/", include((v2_urlpatterns, "v2"), namespace="v2")),
 ]
