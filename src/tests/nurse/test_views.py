@@ -18,11 +18,11 @@ from rest_framework.test import APIClient
 
 from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
 
-USERNAME = "username1"
 PASSWORD = "password1"
 FIRSTNAME = "John"
 LASTNAME = "Doe"
 EMAIL = "johndoe@example.fr"
+USERNAME = EMAIL
 EMAIL_HOST_USER = "support@ordopro.fr"
 
 
@@ -62,15 +62,16 @@ def staff_user(user):
     yield user
 
 
-def authenticate_client_with_token(client, username, password):
+def authenticate_client_with_token(client, email, password):
     """Authenticates a client using a token and returns it."""
     # void previous credentials to avoid "Invalid token" errors
     client.credentials()
     response = client.post(
-        reverse_lazy("api_token_auth"),
-        {"username": username, "password": password},
+        reverse_lazy("v2:api_token_auth"),
+        {"email": email, "password": password},
         format="json",
     )
+    assert response.status_code == status.HTTP_200_OK
     token = response.data["token"]
     client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
     return client
@@ -80,7 +81,7 @@ def authenticate_client_with_token(client, username, password):
 def authenticated_client(user):
     """Authenticates the user via token and yields it."""
     client = APIClient()
-    client = authenticate_client_with_token(client, user.username, PASSWORD)
+    client = authenticate_client_with_token(client, user.email, PASSWORD)
     yield client
     # invalidates credentials
     client.credentials()
@@ -95,7 +96,7 @@ def client(authenticated_client):
 def staff_client(staff_user):
     """Authenticates the staff user via token and yields it."""
     client = APIClient()
-    client = authenticate_client_with_token(client, staff_user.username, PASSWORD)
+    client = authenticate_client_with_token(client, staff_user.email, PASSWORD)
     yield client
     # invalidates credentials
     client.credentials()
@@ -724,7 +725,7 @@ class TestUser:
         assert self.url == "/user/"
 
     def test_create_user(self, client):
-        """The user creation is via another a different endpoint (/account/register)."""
+        """The user creation is via a different endpoint (/account/register)."""
         response = APIClient().post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         # it should be no way to create user via this endpoint
@@ -878,18 +879,19 @@ class TestUser:
 
 
 @pytest.mark.django_db
-class TestAccountRegister:
+class TestUserCreate:
     client = APIClient()
     url = reverse_lazy("register")
     username = {"username": USERNAME}
     password = {"password": PASSWORD}
-    data = {**username, **password}
+    email = {"email": EMAIL}
+    data = {**username, **password, **email}
 
     def test_url(self):
         assert self.url == "/account/register"
 
-    @freeze_time("2021-01-16 16:00:00")
     def test_create(self):
+        """Create a User using username and password."""
         assert User.objects.filter(**self.username).count() == 0
         response = self.client.post(self.url, self.data, format="json")
         assert response.json() == {
@@ -897,7 +899,7 @@ class TestAccountRegister:
             "username": USERNAME,
             "first_name": "",
             "last_name": "",
-            "email": "",
+            "email": EMAIL,
             "is_staff": False,
             "nurse": {
                 "id": 1,
@@ -915,6 +917,8 @@ class TestAccountRegister:
         user = users.get()
         assert user.check_password(self.password["password"]) is True
         assert user.nurse is not None
+        assert user.username == USERNAME
+        assert user.email == EMAIL
 
     def test_create_already_exists(self):
         assert User.objects.filter(**self.username).count() == 0
@@ -934,14 +938,15 @@ class TestAccountRegister:
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
         assert response.data == {"detail": 'Method "GET" not allowed.'}
 
-    def test_auth_ok(self):
+    def test_auth(self):
         """Note this isn't a REST endpoint."""
         url = reverse_lazy("rest_framework:login")
         assert url == "/account/login/"
         user = User.objects.create(**self.username)
         user.set_password(self.password["password"])
         user.save()
-        response = self.client.post(url, self.data)
+        data = {**self.username, **self.password}
+        response = self.client.post(url, data)
         assert response.status_code == status.HTTP_302_FOUND
         # redirecting to the profile page
         assert response.get("Location") == "/accounts/profile/"
@@ -953,6 +958,50 @@ class TestAccountRegister:
         assert (
             "Please enter a correct username and password" in response.content.decode()
         )
+
+
+@pytest.mark.django_db
+class TestUserCreateV2:
+    client = APIClient()
+    url = reverse_lazy("v2:register")
+    username = {"username": USERNAME}
+    password = {"password": PASSWORD}
+    email = {"email": EMAIL}
+    data = {**username, **password, **email}
+
+    def test_url(self):
+        assert self.url == "/api/v2/account/register"
+
+    def test_create(self):
+        """Create a User using email and password, username should be overridden."""
+        data = {**self.password, **self.email}
+        assert User.objects.filter(**self.email).count() == 0
+        response = self.client.post(self.url, data, format="json")
+        assert response.json() == {
+            "id": 1,
+            "first_name": "",
+            "last_name": "",
+            "email": EMAIL,
+            "is_staff": False,
+            "nurse": {
+                "id": 1,
+                "address": "",
+                "city": "",
+                "patients": [],
+                "phone": "",
+                "user": 1,
+                "zip_code": "",
+            },
+        }
+        assert response.status_code == status.HTTP_201_CREATED
+        users = User.objects.filter(**self.email)
+        assert users.count() == 1
+        user = users.get()
+        assert user.check_password(self.password["password"]) is True
+        assert user.nurse is not None
+        # the username passed in the payload was ignored and the email was used instead
+        assert user.username == EMAIL
+        assert user.email == EMAIL
 
 
 @pytest.mark.django_db

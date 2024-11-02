@@ -18,6 +18,7 @@ from nurse.serializers import (
     PrescriptionFileSerializer,
     UserOneSignalProfileSerializer,
     UserSerializer,
+    UserSerializerV2,
 )
 from nurse.utils.email import send_mail_with_reply
 
@@ -222,12 +223,32 @@ class UserCreate(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = (AllowAny,)
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        username = response.data["username"]
+    def _create_nurse(self, response_data):
+        """
+        Protected method to create or get the associated Nurse instance.
+        """
+        username = response_data["username"]
         user = User.objects.get(username=username)
         Nurse.objects.get_or_create(user=user)
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        self._create_nurse(response.data)
         return response
+
+
+class UserCreateV2(UserCreate):
+    """Create a User using email and password."""
+
+    serializer_class = UserSerializerV2
+
+    def _create_nurse(self, response_data):
+        """
+        Override `_create_nurse` to use email as the username.
+        """
+        email = response_data["email"]
+        user = User.objects.get(username=email)
+        Nurse.objects.get_or_create(user=user)
 
 
 class AdminNotificationView(APIView):

@@ -31,7 +31,7 @@ class TestDocumentation:
         assert response.status_code == status.HTTP_200_OK
 
 
-class TestApiTokenAuth:
+class TestApiTokenAuthV1:
     client = APIClient()
     url = "/api-token-auth/"
 
@@ -58,6 +58,38 @@ class TestApiTokenAuth:
             "password": "password",
         }
         user_create(data["username"], data["password"])
+        response = self.client.post(self.url, data, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data.keys() == {"token"}
+
+
+class TestApiTokenAuthV2:
+    client = APIClient()
+    url = "/api/v2/api-token-auth/"
+
+    def test_endpoint(self):
+        assert reverse_lazy("v2:api_token_auth") == self.url
+
+    @pytest.mark.django_db
+    def test_invalid(self):
+        data = {
+            "email": "foo@bar.com",
+            "password": "password",
+        }
+        response = self.client.post(self.url, data, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            response.data["non_field_errors"][0]
+            == "Unable to log in with provided credentials."
+        )
+
+    @pytest.mark.django_db
+    def test_valid(self):
+        data = {
+            "email": "foo@bar.com",
+            "password": "password",
+        }
+        user_create(data["email"], data["password"])
         response = self.client.post(self.url, data, format="json")
         assert response.status_code == status.HTTP_200_OK
         assert response.data.keys() == {"token"}
