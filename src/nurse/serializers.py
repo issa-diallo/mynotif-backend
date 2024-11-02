@@ -59,7 +59,7 @@ class PrescriptionEmailSerializer(serializers.Serializer):
     )
 
 
-class PrescriptionSerializer(serializers.ModelSerializer):
+class PrescriptionSerializer(DynamicFieldsModelSerializer):
     is_valid = serializers.SerializerMethodField()
     expiring_soon = serializers.SerializerMethodField()
 
@@ -73,6 +73,15 @@ class PrescriptionSerializer(serializers.ModelSerializer):
 
     def get_expiring_soon(self, obj):
         return obj.expiring_soon()
+
+
+class ExpandedPrescriptionSerializer(PrescriptionSerializer):
+    """Serializer for prescription details, including patient's first and last names."""
+
+    patient_firstname = serializers.CharField(
+        source="patient.firstname", read_only=True
+    )
+    patient_lastname = serializers.CharField(source="patient.lastname", read_only=True)
 
 
 class PrescriptionFileSerializer(serializers.ModelSerializer):

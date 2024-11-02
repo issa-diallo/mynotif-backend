@@ -527,6 +527,8 @@ class TestPrescription:
                 "end_date": "2022-07-31",
                 "photo_prescription": None,
                 "patient": patient.id,
+                "patient_firstname": "John",
+                "patient_lastname": "Leen",
                 "is_valid": False,
                 "expiring_soon": False,
             }
@@ -555,6 +557,8 @@ class TestPrescription:
             "end_date": "2022-07-31",
             "photo_prescription": None,
             "patient": patient.id,
+            "patient_firstname": "John",
+            "patient_lastname": "Leen",
             "is_valid": True,
             "expiring_soon": False,
         }
