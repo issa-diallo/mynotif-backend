@@ -742,8 +742,7 @@ class TestUser:
         User.objects.create(username="another-user")
         response = client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        # TODO: this is a bug, we shouldn't be able to list other users
-        assert response.json() != expected_response
+        assert response.data == expected_response
 
     def test_detail_user(self, user, client):
         response = client.get(reverse_lazy("v1:user-detail", kwargs={"pk": None}))

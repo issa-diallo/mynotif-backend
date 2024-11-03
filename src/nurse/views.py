@@ -205,6 +205,10 @@ class UserViewSet(
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get_queryset(self):
+        """Limit the queryset to only include the current user."""
+        return User.objects.filter(id=self.request.user.id)
+
     def get_object(self):
         """Fecthing a specific object other than `request.user` isn't allowed."""
         if self.kwargs.get("pk").isdigit():
