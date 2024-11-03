@@ -64,7 +64,10 @@ THIRDPARTY_APP = (
     "rest_framework.authtoken",
 )
 
-CUSTOM_APPS = ("nurse",)
+CUSTOM_APPS = (
+    "main",
+    "nurse",
+)
 
 INSTALLED_APPS = DJANGO_CORE_APP + THIRDPARTY_APP + CUSTOM_APPS
 
