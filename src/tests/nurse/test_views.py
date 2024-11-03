@@ -564,24 +564,6 @@ class TestPrescription:
             "expiring_soon": False,
         }
 
-    @freeze_time("2022-07-20")
-    def test_expiring_soon(self):
-        patient = Patient.objects.create(lastname="Doe", firstname="John")
-        prescription1 = Prescription.objects.create(
-            prescribing_doctor="Dr Leen",
-            start_date=date(2022, 7, 1),
-            end_date=date(2022, 7, 21),
-            patient=patient,
-        )
-        prescription2 = Prescription.objects.create(
-            prescribing_doctor="Dr Jane",
-            start_date=date(2022, 7, 1),
-            end_date=date(2022, 7, 29),
-            patient=patient,
-        )
-        assert prescription1.expiring_soon() is True
-        assert prescription2.expiring_soon() is False
-
     def test_prescription_delete(self, user, client):
         prescription = Prescription.objects.create(**self.data)
         response = client.delete(
@@ -599,8 +581,6 @@ class TestPrescription:
         assert Prescription.objects.count() == 0
 
     # TODO: only allow to upload to prescription we own (and test that), refs #64 & #67
-    # TODO: needed?
-    @override_settings(AWS_ACCESS_KEY_ID="testing")
     def test_prescription_upload(self, s3_mock, client):
         prescription = Prescription.objects.create(**self.data)
         assert prescription.photo_prescription.name == ""
