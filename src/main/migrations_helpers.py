@@ -12,19 +12,39 @@ def enable_rls_for_table_sql(table_name):
     ]
 
 
+def enable_rls_on_tables(schema_editor, table_names):
+    """
+    Enables RLS on the specified tables by executing the relevant SQL commands.
+    Only applies to PostgreSQL databases.
+    """
+    if "postgresql" not in connection.settings_dict["ENGINE"]:
+        return
+    for table_name in table_names:
+        for sql in enable_rls_for_table_sql(table_name):
+            schema_editor.execute(sql)
+
+
 def enable_rls_on_all_models(apps, schema_editor):
     """
     Enables RLS for all tables in the database by applying RLS policies for each table.
-    Only applies to PostgreSQL databases.
     """
-    # Check if the database engine is PostgreSQL
-    if "postgresql" not in connection.settings_dict["ENGINE"]:
-        return
+    # Gather all tables with a ContentType
     content_types = ContentType.objects.all()
-    for content_type in content_types:
-        model = content_type.model_class()
-        if model is not None:
-            table_name = model._meta.db_table
-            # Apply RLS SQL commands for each table
-            for sql in enable_rls_for_table_sql(table_name):
-                schema_editor.execute(sql)
+    tables_to_apply = [
+        content_type.model_class()._meta.db_table
+        for content_type in content_types
+        if content_type.model_class() is not None
+    ]
+    # Apply RLS to all gathered tables
+    enable_rls_on_tables(schema_editor, tables_to_apply)
+
+
+def apply_rls_on_additional_tables(table_names):
+    """
+    Returns a function that can be used to apply RLS on specified tables in a migration.
+    """
+
+    def apply_rls(apps, schema_editor):
+        enable_rls_on_tables(schema_editor, table_names)
+
+    return apply_rls
