@@ -802,15 +802,18 @@ class TestUser:
             == "You do not have permission to perform this action."
         )
 
-    def test_update_user(self, client):
+    def test_update_user(self, user, client):
+        """Update first and last names."""
+        assert user.first_name == "John"
+        assert user.last_name == "Doe"
+        assert user.email == "johndoe@example.fr"
         data = {**self.data, "first_name": "Firstname1", "last_name": "Lastname 1"}
+        assert user.email != data["email"]
         response = client.put(
             reverse_lazy("v1:user-detail", kwargs={"pk": None}), data, format="json"
         )
         assert response.status_code == status.HTTP_200_OK
         data.pop("password")
-        # TODO: first_name and last_name not getting updated, this could be a feature
-        # since we're probably using profile but it should be better documented or fixed
         assert response.json() == {
             **data,
             "id": 1,
@@ -821,19 +824,25 @@ class TestUser:
                 "city": "",
                 "patients": [],
                 "phone": "",
-                "user": 1,
+                "user": user.id,
                 "zip_code": "",
             },
         }
+        user.refresh_from_db()
+        assert user.first_name == data["first_name"]
+        assert user.last_name == data["last_name"]
+        assert user.email == data["email"]
 
     def test_partial_update_user(self, user, client):
         """Using a patch for a partial update (not all fields)."""
+        assert user.first_name == "John"
+        assert user.last_name == "Doe"
+        assert user.email == "johndoe@example.fr"
         data = {"first_name": "Firstname1", "last_name": "Lastname 1"}
         response = client.patch(
             reverse_lazy("v1:user-detail", kwargs={"pk": None}), data, format="json"
         )
         assert response.status_code == status.HTTP_200_OK
-        # TODO: same bug as test_update_user above
         assert response.json() == {
             "id": 1,
             "username": user.username,
@@ -846,10 +855,15 @@ class TestUser:
                 "city": "",
                 "patients": [],
                 "phone": "",
-                "user": 1,
+                "user": user.id,
                 "zip_code": "",
             },
         }
+        user.refresh_from_db()
+        assert user.first_name == data["first_name"]
+        assert user.last_name == data["last_name"]
+        # email wasn't in the payload but didn't get voided since it's a PATCH call
+        assert user.email == "johndoe@example.fr"
 
     def test_delete_user(self, client):
         response = client.delete(reverse_lazy("v1:user-detail", kwargs={"pk": None}))
