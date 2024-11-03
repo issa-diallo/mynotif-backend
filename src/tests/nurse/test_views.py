@@ -160,10 +160,10 @@ def prescription(user):
 class TestSendEmailToDoctorView:
     valid_payload = {"additional_info": "This is a valid message."}
     invalid_payload = {"additional_info": "This message contains <invalid> characters."}
-    url = reverse_lazy("send-email-to-doctor", kwargs={"pk": 1})
+    url = reverse_lazy("v1:send-email-to-doctor", kwargs={"pk": 1})
 
     def test_endpoint(self):
-        assert self.url == "/prescription/1/send-email/"
+        assert self.url == "/api/v1/prescription/1/send-email/"
 
     @override_settings(EMAIL_HOST_USER=EMAIL_HOST_USER)
     def test_send_email_to_doctor(self, client, prescription, user):
@@ -258,11 +258,11 @@ class TestSendEmailToDoctorView:
 
 @pytest.mark.django_db
 class TestPatient:
-    url = reverse_lazy("patient-list")
+    url = reverse_lazy("v1:patient-list")
     data = patient_data
 
     def test_endpoint_patient(self):
-        assert self.url == "/patient/"
+        assert self.url == "/api/v1/patient/"
 
     def test_create_patient(self, user, client):
         """Creating a patient should link it with the authenticated nurse."""
@@ -425,7 +425,7 @@ class TestPatient:
                 },
             }
         )
-        response = client.get(reverse_lazy("patient-detail", kwargs={"pk": 1}))
+        response = client.get(reverse_lazy("v1:patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
@@ -481,7 +481,7 @@ class TestPatient:
         patient = Patient.objects.create(**self.data)
         nurse, _ = Nurse.objects.get_or_create(user=user)
         patient.nurse_set.add(nurse)
-        response = client.delete(reverse_lazy("patient-detail", kwargs={"pk": 1}))
+        response = client.delete(reverse_lazy("v1:patient-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
         assert Patient.objects.count() == 0
@@ -489,11 +489,11 @@ class TestPatient:
 
 @pytest.mark.django_db
 class TestPrescription:
-    url = reverse_lazy("prescription-list")
+    url = reverse_lazy("v1:prescription-list")
     data = prescription_data
 
     def test_endpoint(self):
-        assert self.url == "/prescription/"
+        assert self.url == "/api/v1/prescription/"
 
     # TODO: prescription should only be mapped to a patient's nurse
     def test_create_prescription(self, client):
@@ -543,12 +543,12 @@ class TestPrescription:
     @freeze_time("2022-07-20")
     def test_prescription_detail(self, user, client):
         prescription = Prescription.objects.create(**self.data)
-        response = client.get(reverse_lazy("prescription-detail", kwargs={"pk": 1}))
+        response = client.get(reverse_lazy("v1:prescription-detail", kwargs={"pk": 1}))
         # the prescription/patient is not linked to the logged nurse
         assert response.status_code == status.HTTP_404_NOT_FOUND
         # let's link patient, nurse and prescription together
         patient, _, _ = attach_prescription(prescription, user)
-        response = client.get(reverse_lazy("prescription-detail", kwargs={"pk": 1}))
+        response = client.get(reverse_lazy("v1:prescription-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
@@ -585,14 +585,14 @@ class TestPrescription:
     def test_prescription_delete(self, user, client):
         prescription = Prescription.objects.create(**self.data)
         response = client.delete(
-            reverse_lazy("prescription-detail", kwargs={"pk": prescription.id})
+            reverse_lazy("v1:prescription-detail", kwargs={"pk": prescription.id})
         )
         # the prescription/patient is not linked to the logged nurse
         assert response.status_code == status.HTTP_404_NOT_FOUND
         # let's link patient, nurse and prescription together
         patient, _, _ = attach_prescription(prescription, user)
         response = client.delete(
-            reverse_lazy("prescription-detail", kwargs={"pk": prescription.id})
+            reverse_lazy("v1:prescription-detail", kwargs={"pk": prescription.id})
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
@@ -614,7 +614,7 @@ class TestPrescription:
         }
         # patch should also be available
         response = client.put(
-            reverse_lazy("prescription-upload", kwargs={"pk": prescription.id}), data
+            reverse_lazy("v1:prescription-upload", kwargs={"pk": prescription.id}), data
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
@@ -633,7 +633,7 @@ class TestPrescription:
 
 @pytest.mark.django_db
 class TestNurse:
-    url = reverse_lazy("nurse-list")
+    url = reverse_lazy("v1:nurse-list")
     data = {
         "user": 1,
         "phone": "0134643232",
@@ -643,7 +643,7 @@ class TestNurse:
     }
 
     def test_endpoint(self):
-        assert self.url == "/nurse/"
+        assert self.url == "/api/v1/nurse/"
 
     def test_create_nurse(self, user, client):
         response = client.post(self.url, self.data, format="json")
@@ -699,7 +699,7 @@ class TestNurse:
             zip_code="95300",
             city="Pontoise",
         )
-        response = client.get(reverse_lazy("nurse-detail", kwargs={"pk": 1}))
+        response = client.get(reverse_lazy("v1:nurse-detail", kwargs={"pk": 1}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
@@ -714,7 +714,7 @@ class TestNurse:
 
 @pytest.mark.django_db
 class TestUser:
-    url = reverse_lazy("user-list")
+    url = reverse_lazy("v1:user-list")
     data = {
         "username": "@Issa",
         "email": "issa_test@test.com",
@@ -722,7 +722,7 @@ class TestUser:
     }
 
     def test_endpoint(self):
-        assert self.url == "/user/"
+        assert self.url == "/api/v1/user/"
 
     def test_create_user(self, client):
         """The user creation is via a different endpoint (/account/register)."""
@@ -765,7 +765,7 @@ class TestUser:
         assert response.json() != expected_response
 
     def test_detail_user(self, user, client):
-        response = client.get(reverse_lazy("user-detail", kwargs={"pk": None}))
+        response = client.get(reverse_lazy("v1:user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "id": 1,
@@ -812,7 +812,7 @@ class TestUser:
             client,
             # using a number for the pk would mean we're trying to access CRUD
             # operations on a specific user which is forbidden
-            reverse_lazy("user-detail", kwargs={"pk": 1}),
+            reverse_lazy("v1:user-detail", kwargs={"pk": 1}),
             self.data,
             format="json",
         )
@@ -825,7 +825,7 @@ class TestUser:
     def test_update_user(self, client):
         data = {**self.data, "first_name": "Firstname1", "last_name": "Lastname 1"}
         response = client.put(
-            reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
+            reverse_lazy("v1:user-detail", kwargs={"pk": None}), data, format="json"
         )
         assert response.status_code == status.HTTP_200_OK
         data.pop("password")
@@ -850,7 +850,7 @@ class TestUser:
         """Using a patch for a partial update (not all fields)."""
         data = {"first_name": "Firstname1", "last_name": "Lastname 1"}
         response = client.patch(
-            reverse_lazy("user-detail", kwargs={"pk": None}), data, format="json"
+            reverse_lazy("v1:user-detail", kwargs={"pk": None}), data, format="json"
         )
         assert response.status_code == status.HTTP_200_OK
         # TODO: same bug as test_update_user above
@@ -872,7 +872,7 @@ class TestUser:
         }
 
     def test_delete_user(self, client):
-        response = client.delete(reverse_lazy("user-detail", kwargs={"pk": None}))
+        response = client.delete(reverse_lazy("v1:user-detail", kwargs={"pk": None}))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data is None
         assert User.objects.count() == 0
@@ -881,14 +881,14 @@ class TestUser:
 @pytest.mark.django_db
 class TestUserCreate:
     client = APIClient()
-    url = reverse_lazy("register")
+    url = reverse_lazy("v1:register")
     username = {"username": USERNAME}
     password = {"password": PASSWORD}
     email = {"email": EMAIL}
     data = {**username, **password, **email}
 
     def test_url(self):
-        assert self.url == "/account/register"
+        assert self.url == "/api/v1/account/register"
 
     def test_create(self):
         """Create a User using username and password."""
@@ -1006,10 +1006,10 @@ class TestUserCreateV2:
 
 @pytest.mark.django_db
 class TestProfile:
-    url = "/profile/"
+    url = "/api/v1/profile/"
 
     def test_endpoint(self):
-        assert self.url == reverse_lazy("profile")
+        assert self.url == reverse_lazy("v1:profile")
 
     def test_get(self, client):
         response = client.get(self.url)
@@ -1040,10 +1040,10 @@ class TestProfile:
 
 @pytest.mark.django_db
 class TestAdminNotificationView:
-    url = reverse_lazy("notify")
+    url = reverse_lazy("v1:notify")
 
     def test_endpoint_patient(self):
-        assert self.url == "/notify/"
+        assert self.url == "/api/v1/notify/"
 
     def test_post(self, staff_client):
         """Posting to the endpoint should send notifications."""
@@ -1103,10 +1103,10 @@ def another_user(db):
 
 @pytest.mark.django_db
 class TestUserOneSignalProfileView:
-    url = reverse_lazy("useronesignalprofile-list")
+    url = reverse_lazy("v1:useronesignalprofile-list")
 
     def test_endpoint_onesignal(self):
-        assert self.url == "/onesignal/"
+        assert self.url == "/api/v1/onesignal/"
 
     def test_create_onesignal(self, client, user):
         subscription_id = "1233456789"

@@ -33,10 +33,10 @@ class TestDocumentation:
 
 class TestApiTokenAuthV1:
     client = APIClient()
-    url = "/api-token-auth/"
+    url = "/api/v1/api-token-auth/"
 
     def test_endpoint(self):
-        assert reverse_lazy("api_token_auth") == self.url
+        assert reverse_lazy("v1:api_token_auth") == self.url
 
     @pytest.mark.django_db
     def test_invalid(self):
@@ -97,8 +97,8 @@ class TestApiTokenAuthV2:
 
 class TestDjoser:
     client = APIClient()
-    url = "/auth/"
-    namespace = "auth"
+    url = "/api/v1/auth/"
+    namespace = "v1:auth"
 
     def test_endpoint(self):
         assert reverse_lazy(f"{self.namespace}:api-root") == self.url
@@ -109,7 +109,7 @@ class TestDjoser:
     @pytest.mark.django_db
     def test_reset_password(self):
         url = reverse_lazy(f"{self.namespace}:user-reset-password")
-        assert url == "/auth/users/reset_password/"
+        assert url == "/api/v1/auth/users/reset_password/"
         username = "username"
         password = "password"
         email = "email@foo.com"
