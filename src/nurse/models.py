@@ -68,7 +68,7 @@ class Prescription(models.Model):
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
     photo_prescription = models.ImageField(upload_to="prescriptions")
-    patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=False)
     objects = PrescriptionManager()
 
     def __str__(self):

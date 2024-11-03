@@ -234,19 +234,6 @@ class TestSendEmailToDoctorView:
             "error": "You are not authorized to send emails to this patient"
         }
 
-    def test_send_email_to_doctor_no_patient(self, client):
-        # Create a prescription with no patient
-        Prescription.objects.create(
-            prescribing_doctor="Dr Leen",
-            email_doctor="dr.a@example.com",
-            start_date="2022-07-15",
-            end_date="2022-07-31",
-            patient=None,
-        )
-        response = client.post(self.url, self.valid_payload)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.data == {"error": "This prescription has no patient"}
-
     def test_send_email_to_doctor_invalid_additional_info(
         self, client, prescription, user
     ):
@@ -495,9 +482,10 @@ class TestPrescription:
     def test_endpoint(self):
         assert self.url == "/api/v1/prescription/"
 
-    # TODO: prescription should only be mapped to a patient's nurse
     def test_create_prescription(self, client):
-        response = client.post(self.url, self.data, format="json")
+        patient = Patient.objects.create(**patient_data)
+        data = {**self.data, **{"patient": patient.id}}
+        response = client.post(self.url, data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert Prescription.objects.count() == 1
         prescription = Prescription.objects.get()
@@ -505,11 +493,18 @@ class TestPrescription:
         assert prescription.start_date == date(2022, 7, 15)
         assert prescription.end_date == date(2022, 7, 31)
         assert prescription.photo_prescription.name == ""
+        assert prescription.patient.id == patient.id
 
-    @freeze_time("2022-08-11")
+    def test_create_prescription_no_patient(self, client):
+        """A prescription should always be attached to a patient."""
+        response = client.post(self.url, self.data, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_prescription_list(self, user, client):
+        patient = Patient.objects.create(**patient_data)
         # creating a prescription with no nurse attached
-        prescription = Prescription.objects.create(**self.data)
+        data = {**self.data, **{"patient": patient}}
+        prescription = Prescription.objects.create(**data)
         response = client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         # the prescription isn't attached to a nurse
@@ -542,7 +537,9 @@ class TestPrescription:
 
     @freeze_time("2022-07-20")
     def test_prescription_detail(self, user, client):
-        prescription = Prescription.objects.create(**self.data)
+        patient = Patient.objects.create(**patient_data)
+        data = {**self.data, **{"patient": patient}}
+        prescription = Prescription.objects.create(**data)
         response = client.get(reverse_lazy("v1:prescription-detail", kwargs={"pk": 1}))
         # the prescription/patient is not linked to the logged nurse
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -565,7 +562,9 @@ class TestPrescription:
         }
 
     def test_prescription_delete(self, user, client):
-        prescription = Prescription.objects.create(**self.data)
+        patient = Patient.objects.create(**patient_data)
+        data = {**self.data, **{"patient": patient}}
+        prescription = Prescription.objects.create(**data)
         response = client.delete(
             reverse_lazy("v1:prescription-detail", kwargs={"pk": prescription.id})
         )
@@ -582,7 +581,9 @@ class TestPrescription:
 
     # TODO: only allow to upload to prescription we own (and test that), refs #64 & #67
     def test_prescription_upload(self, s3_mock, client):
-        prescription = Prescription.objects.create(**self.data)
+        patient = Patient.objects.create(**patient_data)
+        data = {**self.data, **{"patient": patient}}
+        prescription = Prescription.objects.create(**data)
         assert prescription.photo_prescription.name == ""
         with pytest.raises(
             ValueError,
