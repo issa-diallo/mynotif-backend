@@ -58,12 +58,6 @@ class SendEmailToDoctorView(APIView):
 
         prescription = get_object_or_404(Prescription, id=pk)
         patient = prescription.patient
-        if not patient:
-            return Response(
-                {"error": "This prescription has no patient"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
         email_doctor = prescription.email_doctor
         if not email_doctor:
             return Response(

@@ -2,19 +2,38 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from nurse.models import Prescription
+from nurse.models import Patient, Prescription
+
+
+@pytest.fixture
+def patient():
+    patient_data = {
+        "firstname": "John",
+        "lastname": "Leen",
+        "street": "3 place du cerdan",
+        "zip_code": "95400",
+        "city": "courdimanche",
+        "phone": "0602015454",
+        "health_card_number": "12345678910",
+        "ss_provider_code": "123456789",
+        "birthday": "2023-08-15",
+    }
+    patient = Patient.objects.create(**patient_data)
+    yield patient
 
 
 # Fixture for prescriptions that will be common across all tests.
 @pytest.fixture
-def base_prescriptions():
+def base_prescriptions(patient):
     Prescription.objects.create(
+        patient=patient,
         prescribing_doctor="Dr A",
         email_doctor="dr.a@example.com",
         start_date=datetime.now().date() - timedelta(days=3),
         end_date=datetime.now().date() + timedelta(days=3),
     )
     Prescription.objects.create(
+        patient=patient,
         prescribing_doctor="Dr B",
         email_doctor="dr.b@example.com",
         start_date=datetime.now().date() - timedelta(days=10),
@@ -24,8 +43,9 @@ def base_prescriptions():
 
 # Separate fixtures for different prescription types.
 @pytest.fixture
-def prescription_expiring_today():
+def prescription_expiring_today(patient):
     Prescription.objects.create(
+        patient=patient,
         prescribing_doctor="Dr C",
         email_doctor="dr.c@example.com",
         start_date=datetime.now().date() - timedelta(days=5),
@@ -34,8 +54,9 @@ def prescription_expiring_today():
 
 
 @pytest.fixture
-def prescription_started_today():
+def prescription_started_today(patient):
     Prescription.objects.create(
+        patient=patient,
         prescribing_doctor="Dr D",
         email_doctor="dr.d@example.com",
         start_date=datetime.now().date(),
