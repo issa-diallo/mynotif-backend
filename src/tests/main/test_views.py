@@ -1,27 +1,33 @@
+import os
 from unittest import mock
 
 import pytest
-from django.urls.base import reverse_lazy
+from django.urls import reverse_lazy
 from rest_framework import status
-from rest_framework.test import APIClient
 
 
 class TestVersion:
-    client = APIClient()
-    url = "/version/"
+    url = "/api/v1/version/"
 
     def test_endpoint(self):
-        assert reverse_lazy("version") == self.url
+        assert self.url == reverse_lazy("v1:version")
 
     @pytest.mark.parametrize(
-        "env_version,expected_version",
+        "env,expected",
         [
-            ("1.2.3", "1.2.3"),
-            ("", "0.0.0"),
+            # default return
+            ({}, "0.0.0"),
+            ({"VERSION": ""}, "0.0.0"),
+            # base case
+            ({"VERSION": "1.2.3"}, "1.2.3"),
         ],
     )
-    def test_backend_url(self, env_version, expected_version):
-        with mock.patch.dict("os.environ", {"VERSION": env_version}):
-            response = self.client.get(self.url)
+    def test_version(self, client, env, expected):
+        with mock.patch.dict(os.environ, env):
+            response = client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {"version": expected_version}
+        assert response.json() == {"version": expected}
+        with mock.patch.dict(os.environ, env):
+            response = client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"version": expected}

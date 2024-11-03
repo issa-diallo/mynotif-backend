@@ -36,7 +36,6 @@ router.registry.extend(nurse_router.registry)
 
 v1_urlpatterns = [
     path("version/", main_views.version, name="version"),
-    path("account/", include("rest_framework.urls")),
     path("account/register", nurse_views.UserCreate.as_view(), name="register"),
     path("auth/", include(("djoser.urls", "auth"), namespace="auth")),
     path("", include("nurse.urls"), name="nurse"),
@@ -54,8 +53,7 @@ v2_urlpatterns = [
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("nurse.urls"), name="nurse"),
-    path("", include(router.urls)),
+    path("account/", include("rest_framework.urls")),
     path(
         "swagger.json",
         SpectacularJSONAPIView.as_view(),
@@ -76,8 +74,6 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="schema-redoc",
     ),
-    # TODO include the old route until the frontend is done migrating, refs #187
-    path("", include(v1_urlpatterns)),
     path("api/v1/", include((v1_urlpatterns, "v1"), namespace="v1")),
     path("api/v2/", include((v2_urlpatterns, "v2"), namespace="v2")),
 ]
