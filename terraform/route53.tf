@@ -21,19 +21,39 @@ resource "aws_route53_record" "backend_domain" {
 }
 
 ## Frontend domain setup
-resource "aws_route53_record" "vercel_root" {
+# The landing/root marketing website, served via GitHub Pages, see:
+# https://github.com/mynotif/website
+resource "aws_route53_record" "frontend_root" {
   zone_id = data.aws_route53_zone.this.zone_id
-  name    = local.frontend_domain
+  name    = var.domain_name
   type    = "A"
   ttl     = var.record_ttl
-  records = var.vercel_root_records
+  records = var.github_pages_a_records
 }
 
-resource "aws_route53_record" "vercel_www" {
+resource "aws_route53_record" "frontend_root_ipv6" {
+  zone_id = data.aws_route53_zone.this.zone_id
+  name    = var.domain_name
+  type    = "AAAA"
+  ttl     = var.record_ttl
+  records = var.github_pages_aaaa_records
+}
+
+resource "aws_route53_record" "frontend_www" {
   zone_id = data.aws_route53_zone.this.zone_id
   name    = "www"
   type    = "CNAME"
-  records = var.vercel_www_records
+  records = var.github_pages_cname_records
+  ttl     = var.record_ttl
+}
+
+# The application web page, served via Vercel, see:
+# https://github.com/mynotif/mynotif-frontend
+resource "aws_route53_record" "vercel_frontend_app" {
+  zone_id = data.aws_route53_zone.this.zone_id
+  name    = local.frontend_domain_prefix
+  type    = "CNAME"
+  records = var.vercel_cname_records
   ttl     = var.record_ttl
 }
 
