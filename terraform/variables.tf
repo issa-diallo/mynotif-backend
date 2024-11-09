@@ -29,15 +29,37 @@ variable "domain_name" {
   default     = "ordopro.fr"
 }
 
-variable "vercel_root_records" {
+variable "github_pages_cname_records" {
   type        = list(string)
-  description = "Vercel frontend domain mapping."
-  default     = ["76.76.21.21"]
+  description = "GitHub Pages frontend landing domain mapping."
+  default     = ["mynotif.github.io"]
 }
 
-variable "vercel_www_records" {
+variable "github_pages_a_records" {
+  description = "GitHub Pages A records for IPv4."
   type        = list(string)
-  description = "Vercel frontend domain mapping."
+  default = [
+    "185.199.108.153",
+    "185.199.109.153",
+    "185.199.110.153",
+    "185.199.111.153"
+  ]
+}
+
+variable "github_pages_aaaa_records" {
+  description = "GitHub Pages AAAA records for IPv6."
+  type        = list(string)
+  default = [
+    "2606:50c0:8000::153",
+    "2606:50c0:8001::153",
+    "2606:50c0:8002::153",
+    "2606:50c0:8003::153"
+  ]
+}
+
+variable "vercel_cname_records" {
+  type        = list(string)
+  description = "Vercel frontend app domain mapping."
   default     = ["cname.vercel-dns.com."]
 }
 
@@ -112,6 +134,7 @@ variable "env_cors_allowed_origins" {
     "https://mynotif.netlify.app",
     "https://ordopro.fr",
     "https://www.ordopro.fr",
+    "https://app.ordopro.fr",
   ]
 }
 
@@ -149,9 +172,9 @@ variable "lambda_python_runtime" {
 }
 
 locals {
-  image_name        = "${var.app_name}-${var.environment}"
-  backend_subdomain = "api.${var.domain_name}"
-  frontend_domain   = var.domain_name
+  image_name             = "${var.app_name}-${var.environment}"
+  backend_subdomain      = "api.${var.domain_name}"
+  frontend_domain_prefix = "app"
   ## dynamic environment variables
-  env_templated_mail_domain = local.frontend_domain
+  env_templated_mail_domain = var.domain_name
 }
