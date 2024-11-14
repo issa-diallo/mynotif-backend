@@ -28,6 +28,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 from nurse import views as nurse_views
 from nurse.urls import router as nurse_router
+from payment.urls import router as payment_router
 
 from . import views as main_views
 
@@ -36,12 +37,14 @@ handler500 = "rest_framework.exceptions.server_error"
 
 router = routers.DefaultRouter()
 router.registry.extend(nurse_router.registry)
+router.registry.extend(payment_router.registry)
 
 v1_urlpatterns = [
     path("version/", main_views.version, name="version"),
     path("account/register", nurse_views.UserCreate.as_view(), name="register"),
     path("auth/", include(("djoser.urls", "auth"), namespace="auth")),
     path("", include("nurse.urls"), name="nurse"),
+    path("payment/", include("payment.urls", namespace="payment")),
     path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
     path("error-400/", main_views.Error400View.as_view(), name="error_400"),
     path("api-error-400/", main_views.Error400APIView.as_view(), name="api_error_400"),
