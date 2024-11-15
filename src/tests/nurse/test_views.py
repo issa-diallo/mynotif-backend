@@ -1225,3 +1225,73 @@ class TestSubscriptionViewSet:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Subscription cancelled"
+
+
+@pytest.fixture
+def stripe_product():
+    return StripeProduct.objects.create(
+        name="Product 1",
+        product_id="prod_test_id",
+        monthly_price_id="price_test_monthly",
+        annual_price_id="price_test_annual",
+    )
+
+
+@pytest.mark.django_db
+class TestStripeProductViewSet:
+
+    def test_create_stripe_product(self, client, staff_user):
+        url = reverse_lazy("v1:stripeproduct-list")
+        data = {
+            "name": "Product 1",
+            "product_id": "prod_test_id",
+            "monthly_price_id": "price_test_monthly",
+            "annual_price_id": "price_test_annual",
+        }
+        client.force_authenticate(user=staff_user)
+        response = client.post(url, data, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["name"] == "Product 1"
+        assert response.data["product_id"] == "prod_test_id"
+        assert response.data["monthly_price_id"] == "price_test_monthly"
+        assert response.data["annual_price_id"] == "price_test_annual"
+
+    def test_list_stripe_products(self, client, staff_user, stripe_product):
+        url = reverse_lazy("v1:stripeproduct-list")
+        client.force_authenticate(user=staff_user)
+        response = client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 1
+        assert response.data[0]["name"] == "Product 1"
+        assert response.data[0]["product_id"] == "prod_test_id"
+
+    def test_retrieve_stripe_product(self, client, staff_user, stripe_product):
+        url = reverse_lazy("v1:stripeproduct-detail", kwargs={"pk": stripe_product.pk})
+        client.force_authenticate(user=staff_user)
+        response = client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["name"] == "Product 1"
+        assert response.data["product_id"] == "prod_test_id"
+
+    def test_update_stripe_product(self, client, staff_user, stripe_product):
+        url = reverse_lazy("v1:stripeproduct-detail", kwargs={"pk": stripe_product.pk})
+        data = {
+            "name": "Updated Product",
+            "product_id": "updated_prod_id",
+            "monthly_price_id": "updated_price_monthly",
+            "annual_price_id": "updated_price_annual",
+        }
+        client.force_authenticate(user=staff_user)
+        response = client.put(url, data, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["name"] == "Updated Product"
+        assert response.data["product_id"] == "updated_prod_id"
+        assert response.data["monthly_price_id"] == "updated_price_monthly"
+        assert response.data["annual_price_id"] == "updated_price_annual"
+
+    def test_delete_stripe_product(self, client, staff_user, stripe_product):
+        url = reverse_lazy("v1:stripeproduct-detail", kwargs={"pk": stripe_product.pk})
+        client.force_authenticate(user=staff_user)
+        response = client.delete(url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert StripeProduct.objects.count() == 0

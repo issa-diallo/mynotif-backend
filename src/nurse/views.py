@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny, BasePermission, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -25,6 +25,7 @@ from nurse.serializers import (
     PatientSerializer,
     PrescriptionEmailSerializer,
     PrescriptionFileSerializer,
+    StripeProductSerializer,
     SubscriptionSerializer,
     UserOneSignalProfileSerializer,
     UserSerializer,
@@ -338,3 +339,48 @@ class SubscriptionCancelView(APIView):
         return Response(
             {"message": "Subscription cancelled"}, status=status.HTTP_200_OK
         )
+
+
+class IsStaff(BasePermission):
+    """
+    Permission to check if the user is a staff member.
+    """
+
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.is_staff
+
+
+class StripeProductViewSet(viewsets.ModelViewSet):
+    queryset = StripeProduct.objects.all()
+    serializer_class = StripeProductSerializer
+    permission_classes = [IsStaff]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        obj = self.get_object()
+        serializer = self.get_serializer(obj)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)

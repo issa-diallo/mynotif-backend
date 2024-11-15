@@ -6,6 +6,7 @@ from nurse.models import (
     Nurse,
     Patient,
     Prescription,
+    StripeProduct,
     Subscription,
     UserOneSignalProfile,
 )
@@ -175,3 +176,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             "user": {"read_only": True},
             "stripe_subscription_id": {"required": True},
         }
+
+
+class StripeProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StripeProduct
+        fields = "__all__"
