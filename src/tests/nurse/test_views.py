@@ -1165,6 +1165,9 @@ class TestSubscriptionViewSet:
         response = client.post(self.create_url, data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["sessionId"] == "session_id_example"
+        assert (
+            response.data["checkout_url"] == "https://checkout.stripe.com/pay/example"
+        )
 
     @patch("nurse.views.stripe.checkout.Session.create")
     @patch("nurse.views.StripeProduct.objects.get")

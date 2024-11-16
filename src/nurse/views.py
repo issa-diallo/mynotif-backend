@@ -271,6 +271,7 @@ class AdminNotificationView(APIView):
 
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
+    stripe.api_key = settings.STRIPE_API_KEY
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
@@ -313,7 +314,10 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
             headers = self.get_success_headers(serializer.data)
             return Response(
-                {"sessionId": checkout_session.id},
+                {
+                    "sessionId": checkout_session.id,
+                    "checkout_url": checkout_session.url,
+                },
                 status=status.HTTP_201_CREATED,
                 headers=headers,
             )
