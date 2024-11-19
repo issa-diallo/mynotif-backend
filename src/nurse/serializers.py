@@ -2,14 +2,7 @@ from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 
-from nurse.models import (
-    Nurse,
-    Patient,
-    Prescription,
-    StripeProduct,
-    Subscription,
-    UserOneSignalProfile,
-)
+from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
 
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
@@ -166,19 +159,3 @@ class UserOneSignalProfileSerializer(serializers.ModelSerializer):
         model = UserOneSignalProfile
         fields = ["subscription_id", "user"]
         extra_kwargs = {"user": {"read_only": True}}
-
-
-class SubscriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subscription
-        fields = "__all__"
-        extra_kwargs = {
-            "user": {"read_only": True},
-            "stripe_subscription_id": {"required": True},
-        }
-
-
-class StripeProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StripeProduct
-        fields = "__all__"

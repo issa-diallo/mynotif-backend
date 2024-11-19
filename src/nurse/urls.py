@@ -9,10 +9,6 @@ from nurse.views import (
     PrescriptionViewSet,
     ProfileView,
     SendEmailToDoctorView,
-    StripeProductViewSet,
-    SubscriptionCancelView,
-    SubscriptionSuccessView,
-    SubscriptionViewSet,
     UserOneSignalProfileViewSet,
     UserViewSet,
 )
@@ -23,8 +19,7 @@ router.register("prescription", PrescriptionViewSet)
 router.register("nurse", NurseViewSet)
 router.register("user", UserViewSet)
 router.register("onesignal", UserOneSignalProfileViewSet)
-router.register("subscription", SubscriptionViewSet)
-router.register("stripe-products", StripeProductViewSet)
+
 
 urlpatterns = [
     path("profile/", ProfileView.as_view(), name="profile"),
@@ -38,16 +33,6 @@ urlpatterns = [
         "prescription/<int:pk>/send-email/",
         SendEmailToDoctorView.as_view(),
         name="send-email-to-doctor",
-    ),
-    path(
-        "subscriptions/success/",
-        SubscriptionSuccessView.as_view(),
-        name="subscription-success",
-    ),
-    path(
-        "subscriptions/cancel/",
-        SubscriptionCancelView.as_view(),
-        name="subscription-cancel",
     ),
 ]
 

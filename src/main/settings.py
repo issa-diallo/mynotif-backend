@@ -67,6 +67,7 @@ THIRDPARTY_APP = (
 CUSTOM_APPS = (
     "main",
     "nurse",
+    "payment",
 )
 
 INSTALLED_APPS = DJANGO_CORE_APP + THIRDPARTY_APP + CUSTOM_APPS
@@ -250,3 +251,6 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
 # STRIPE
 STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "")
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_API_VERSION = os.environ.get("STRIPE_API_VERSION", "")
+ESSENTIAL_PLAN_NAME = os.environ.get("ESSENTIAL_PLAN_NAME", "")

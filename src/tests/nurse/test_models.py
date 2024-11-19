@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 from django.contrib.auth.models import User
 
-from nurse.models import Patient, Prescription, StripeProduct, Subscription
+from nurse.models import Patient, Prescription
 
 
 @pytest.fixture
@@ -113,43 +113,3 @@ class TestPrescriptionManager:
 @pytest.fixture
 def user():
     return User.objects.create_user(username="testuser", password="password")
-
-
-@pytest.fixture
-def subscription(user):
-    return Subscription.objects.create(
-        user=user, stripe_subscription_id="sub_123456789", is_active=True
-    )
-
-
-@pytest.fixture
-def stripe_product():
-    return StripeProduct.objects.create(
-        name="Essentiel",
-        product_id="prod_RCs63heMwKdOGZ",
-        monthly_price_id="price_1QKSM0Klp91vayS3fkU8Ktz6",
-        annual_price_id="price_1QKor4Klp91vayS3Nw9eOJLg",
-    )
-
-
-@pytest.mark.django_db
-class TestSubscription:
-    def test_subscription_creation(self, subscription, user):
-        assert subscription.user == user
-        assert subscription.stripe_subscription_id == "sub_123456789"
-        assert subscription.is_active is True
-
-    def test_subscription_str(self, subscription):
-        assert str(subscription) == f"Subscription of {subscription.user.username}"
-
-
-@pytest.mark.django_db
-class TestStripeProduct:
-    def test_stripe_product_creation(self, stripe_product):
-        assert stripe_product.name == "Essentiel"
-        assert stripe_product.product_id == "prod_RCs63heMwKdOGZ"
-        assert stripe_product.monthly_price_id == "price_1QKSM0Klp91vayS3fkU8Ktz6"
-        assert stripe_product.annual_price_id == "price_1QKor4Klp91vayS3Nw9eOJLg"
-
-    def test_stripe_product_str(self, stripe_product):
-        assert str(stripe_product) == stripe_product.name
