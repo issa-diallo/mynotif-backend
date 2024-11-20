@@ -1,33 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Renouvellement d'ordonnance</title>
-</head>
-<body>
+  </head>
+  <body>
     <main>
-        <h1>Renouvellement d'ordonnance</h1>
+      <h1>Renouvellement d'ordonnance</h1>
+      <div>
+        <p>Bonjour,</p>
+
+        <p>
+          Pourriez-vous s'il vous plaît, renouveller l'ordonnance de ce patient
+          :
+        </p>
+        <ul>
+          <li>Patient : {{ patient_name }}</li>
+          <li>Date de naissance : {{ patient_birth_date }}</li>
+        </ul>
+
+        <p>Détails des soins :</p>
         <div>
-            <p>Bonjour,</p>
-
-            <p>Pourriez-vous s'il vous plaît, renouveller l'ordonnance de ce patient :
-                <ul>
-                    <li>Patient : {{ patient_name }}</li>
-                    <li>Date de naissance : {{ patient_birth_date }}</li>
-                </ul>
-            </p>
-
-            <p>Détails des soins :</p>
-            <div>
-                <pre>{{ additional_info }}</pre>
-            </div>
+          <pre>{{ additional_info }}</pre>
         </div>
-        <footer>
-            <p>Cordialement,</p>
-            <p>{{ nurse_name }}<br>
-            Infirmière Libérale</p>
-        </footer>
+      </div>
+      <footer>
+        <p>Cordialement,</p>
+        <p>
+          {{ nurse_name }}<br />
+          Infirmière Libérale
+        </p>
+      </footer>
     </main>
-</body>
+  </body>
 </html>

@@ -67,7 +67,7 @@ lint/terraform:
 	terraform -chdir=terraform fmt -recursive -diff -check
 
 lint/nodeprettier:
-	$(NODE_PRETTIER) --check *.md .github/
+	$(NODE_PRETTIER) --check *.md *.yml .github/ src/
 
 lint: lint/isort lint/flake8 lint/black lint/terraform lint/nodeprettier
 
@@ -81,7 +81,7 @@ format/terraform:
 	terraform -chdir=terraform fmt -recursive -diff
 
 format/nodeprettier:
-	$(NODE_PRETTIER) --write *.md .github/
+	$(NODE_PRETTIER) --write *.md *.yml .github/ src/
 
 format: format/isort format/black format/terraform format/nodeprettier
 
