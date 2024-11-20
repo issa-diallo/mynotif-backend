@@ -190,6 +190,7 @@ class TestSendEmailToDoctorView:
     def test_send_email_to_doctor_404(self, client):
         response = client.post(self.url, self.valid_payload)
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data == {"detail": "No Prescription matches the given query."}
 
     def test_doctor_has_no_email(self, client, prescription):
         prescription.email_doctor = ""
@@ -239,8 +240,7 @@ class TestSendEmailToDoctorView:
     ):
         response = client.post(self.url, self.invalid_payload)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "additional_info" in response.data
-        assert "Enter a valid value." in response.data["additional_info"]
+        assert response.data == {"additional_info": ["Enter a valid value."]}
 
 
 @pytest.mark.django_db
@@ -499,6 +499,7 @@ class TestPrescription:
         """A prescription should always be attached to a patient."""
         response = client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data == {"patient": ["This field is required."]}
 
     def test_prescription_list(self, user, client):
         patient = Patient.objects.create(**patient_data)
@@ -543,6 +544,7 @@ class TestPrescription:
         response = client.get(reverse_lazy("v1:prescription-detail", kwargs={"pk": 1}))
         # the prescription/patient is not linked to the logged nurse
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data == {"detail": "No Prescription matches the given query."}
         # let's link patient, nurse and prescription together
         patient, _, _ = attach_prescription(prescription, user)
         response = client.get(reverse_lazy("v1:prescription-detail", kwargs={"pk": 1}))
@@ -570,6 +572,7 @@ class TestPrescription:
         )
         # the prescription/patient is not linked to the logged nurse
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data == {"detail": "No Prescription matches the given query."}
         # let's link patient, nurse and prescription together
         patient, _, _ = attach_prescription(prescription, user)
         response = client.delete(
@@ -921,9 +924,9 @@ class TestUserCreate:
         assert User.objects.filter(**self.username).count() == 1
         response = self.client.post(self.url, self.data, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert (
-            response.data["username"][0] == "A user with that username already exists."
-        )
+        assert response.data == {
+            "username": ["A user with that username already exists."]
+        }
         assert User.objects.filter(**self.username).count() == 1
 
     def test_get(self):
