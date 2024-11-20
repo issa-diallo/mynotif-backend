@@ -184,8 +184,8 @@ class TestSendEmailToDoctorView:
         assert "<li>Patient : John Leen</li>" in html_body
         assert "<li>Date de naissance : Aug. 15, 2023</li>" in html_body
         assert "<pre>This is a valid message.</pre>" in html_body
-        assert "<p>John Doe<br>" in html_body
-        assert "Infirmière Libérale</p>" in html_body
+        assert "John Doe<br />" in html_body
+        assert "Infirmière Libérale" in html_body
 
     def test_send_email_to_doctor_404(self, client):
         response = client.post(self.url, self.valid_payload)
