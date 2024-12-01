@@ -88,3 +88,24 @@ class Prescription(models.Model):
 class UserOneSignalProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     subscription_id = models.CharField(max_length=255, blank=True, null=True)
+
+
+class Subscription(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    stripe_subscription_id = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Subscription of {self.user.username}"
+
+
+class StripeProduct(models.Model):
+    name = models.CharField(max_length=255)
+    product_id = models.CharField(max_length=255)
+    monthly_price_id = models.CharField(max_length=255)
+    annual_price_id = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name

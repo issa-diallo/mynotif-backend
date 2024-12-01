@@ -246,3 +246,7 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
     )
+
+# STRIPE
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "")
+STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
