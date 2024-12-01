@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
+from nurse.models import (
+    Nurse,
+    Patient,
+    Prescription,
+    StripeProduct,
+    Subscription,
+    UserOneSignalProfile,
+)
 
 
 @admin.register(Nurse)
@@ -38,4 +45,22 @@ class UserOneSignalProfileAdmin(admin.ModelAdmin):
     list_display = (
         "user",
         "subscription_id",
+    )
+
+
+@admin.register(StripeProduct)
+class StripeProductAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "product_id",
+        "monthly_price_id",
+        "annual_price_id",
+    )
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "is_active",
     )
