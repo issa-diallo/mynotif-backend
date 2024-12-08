@@ -4,6 +4,7 @@ from rest_framework import routers
 from payment.views import (
     SubscriptionCancelView,
     SubscriptionSuccessView,
+    SubscriptionUserCancelView,
     SubscriptionViewSet,
 )
 
@@ -25,6 +26,11 @@ urlpatterns = [
         "subscriptions/cancel/",
         SubscriptionCancelView.as_view(),
         name="subscription-cancel",
+    ),
+    path(
+        "subscriptions/user/cancel/",
+        SubscriptionUserCancelView.as_view(),
+        name="subscription-user-cancel",
     ),
     path("stripe/webhook/", webhooks.stripe_webhook, name="stripe-webhook"),
 ]

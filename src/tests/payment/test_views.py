@@ -1,6 +1,8 @@
+from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import pytest
+import stripe
 from django.urls.base import reverse_lazy
 from rest_framework import status
 
@@ -16,9 +18,13 @@ def client(authenticated_client):
 class TestSubscriptionViewSet:
 
     create_url = reverse_lazy("v1:payment:subscription-list")
+    cancel_user_url = reverse_lazy("v1:payment:subscription-user-cancel")
 
     def test_endpoint(self):
         assert self.create_url == "/api/v1/payment/subscription/"
+
+    def test_endpoint2(self):
+        assert self.cancel_user_url == "/api/v1/payment/subscriptions/user/cancel/"
 
     def retrieve_url(self, pk):
         return reverse_lazy("v1:payment:subscription-detail", kwargs={"pk": pk})
@@ -99,3 +105,72 @@ class TestSubscriptionViewSet:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Subscription cancelled"
+
+    @mock.patch("stripe.Subscription.modify")
+    def test_subscription_user_cancel_view(self, mock_stripe_modify, client, user):
+        client.force_login(user)
+
+        subscription = Subscription.objects.create(
+            user=user,
+            stripe_subscription_id="sub_1FgsVx2R1LZ5sbG0fFqkg9Jz",
+            cancel_at_period_end=False,
+        )
+
+        mock_stripe_modify.return_value = {
+            "id": "sub_1FgsVx2R1LZ5sbG0fFqkg9Jz",
+            "cancel_at_period_end": True,
+        }
+
+        response = client.post(self.cancel_user_url, data={}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["message"] == "Subscription cancelled successfully"
+
+        subscription.refresh_from_db()
+        assert subscription.cancel_at_period_end is True
+
+    @mock.patch("stripe.Subscription.modify")
+    def test_subscription_user_cancel_stripe_error(
+        self, mock_stripe_modify, client, user
+    ):
+        client.force_login(user)
+
+        subscription = Subscription.objects.create(
+            user=user,
+            stripe_subscription_id="sub_1FgsVx2R1LZ5sbG0fFqkg9Jz",
+            cancel_at_period_end=False,
+        )
+
+        mock_stripe_modify.side_effect = stripe.error.InvalidRequestError(
+            "Invalid subscription ID", "param"
+        )
+
+        response = client.post(self.cancel_user_url, data={}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["error"] == "Stripe error: Invalid subscription ID"
+
+        subscription.refresh_from_db()
+        assert subscription.cancel_at_period_end is False
+
+    @mock.patch("stripe.Subscription.modify")
+    def test_subscription_user_cancel_unknown_error(
+        self, mock_stripe_modify, client, user
+    ):
+        client.force_login(user)
+
+        subscription = Subscription.objects.create(
+            user=user,
+            stripe_subscription_id="sub_1FgsVx2R1LZ5sbG0fFqkg9Jz",
+            cancel_at_period_end=False,
+        )
+
+        mock_stripe_modify.side_effect = Exception("Something went wrong")
+
+        response = client.post(self.cancel_user_url, data={}, format="json")
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.data["error"] == "An error occurred: Something went wrong"
+
+        subscription.refresh_from_db()
+        assert subscription.cancel_at_period_end is False
