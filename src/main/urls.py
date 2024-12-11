@@ -31,6 +31,9 @@ from nurse.urls import router as nurse_router
 
 from . import views as main_views
 
+handler400 = "rest_framework.exceptions.bad_request"
+handler500 = "rest_framework.exceptions.server_error"
+
 router = routers.DefaultRouter()
 router.registry.extend(nurse_router.registry)
 
@@ -40,6 +43,12 @@ v1_urlpatterns = [
     path("auth/", include(("djoser.urls", "auth"), namespace="auth")),
     path("", include("nurse.urls"), name="nurse"),
     path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
+    path("error-400/", main_views.Error400View.as_view(), name="error_400"),
+    path("api-error-400/", main_views.Error400APIView.as_view(), name="api_error_400"),
+    path("error-404/", main_views.Error404View.as_view(), name="error_404"),
+    path("api-error-404/", main_views.Error404APIView.as_view(), name="api_error_404"),
+    path("error-500/", main_views.Error500View.as_view(), name="error_500"),
+    path("api-error-500/", main_views.Error500APIView.as_view(), name="api_error_500"),
 ]
 
 v2_urlpatterns = [
