@@ -1,12 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from payment.views import (
-    SubscriptionCancelView,
-    SubscriptionSuccessView,
-    SubscriptionUserCancelView,
-    SubscriptionViewSet,
-)
+from payment.views import SubscriptionUserCancelView, SubscriptionViewSet
 
 from . import webhooks
 
@@ -17,16 +12,6 @@ app_name = "payment"
 
 urlpatterns = [
     path("", include(router.urls)),
-    path(
-        "subscriptions/success/",
-        SubscriptionSuccessView.as_view(),
-        name="subscription-success",
-    ),
-    path(
-        "subscriptions/cancel/",
-        SubscriptionCancelView.as_view(),
-        name="subscription-cancel",
-    ),
     path(
         "subscriptions/user/cancel/",
         SubscriptionUserCancelView.as_view(),
