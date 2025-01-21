@@ -1,7 +1,6 @@
 import stripe
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -39,12 +38,8 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
             mode="subscription",
             billing_address_collection="required",
             currency="eur",
-            success_url=request.build_absolute_uri(
-                reverse("v1:payment:subscription-success")
-            ),
-            cancel_url=request.build_absolute_uri(
-                reverse("v1:payment:subscription-cancel")
-            ),
+            success_url=f"{settings.FRONTEND_URL}/success?checkout=true",
+            cancel_url=f"{settings.FRONTEND_URL}/cancel?checkout=true",
             metadata={
                 "user_id": user.id,
                 "product_name": product.name,
@@ -95,37 +90,3 @@ class SubscriptionUserCancelView(APIView):
             {"message": "Subscription canceled successfully"},
             status=status.HTTP_200_OK,
         )
-
-
-class SubscriptionSuccessView(APIView):
-    """
-    Handles the redirection after a successful payment.
-
-    This endpoint corresponds to the success_url defined when creating
-    a Stripe checkout session. Stripe redirects the user here when the
-    payment is successful, confirming the subscription action with a
-    200 OK status.
-    """
-
-    def get(self, request, *args, **kwargs):
-        return Response(
-            {"message": "Subscription successful"}, status=status.HTTP_200_OK
-        )
-
-
-class SubscriptionCancelView(APIView):
-    """
-    Handles the redirection after a payment failure or cancelation.
-
-    This endpoint corresponds to the cancel_url defined
-    when creating a Stripe Checkout session.
-    Stripe redirects the user here
-    if the payment is not completed
-    (i.e., the user either cancels the payment or the payment fails for any reason).
-    This confirms that the payment process was interrupted or
-    not successfully completed,
-    and a 200 OK status is returned to acknowledge the cancelation.
-    """
-
-    def get(self, request, *args, **kwargs):
-        return Response({"message": "Subscription canceled"}, status=status.HTTP_200_OK)

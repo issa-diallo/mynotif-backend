@@ -145,29 +145,3 @@ class TestSubscriptionUserCancelView:
 
         subscription.refresh_from_db()
         assert subscription.cancel_at_period_end is False
-
-
-@pytest.mark.django_db
-class TestSubscriptionSuccessView:
-    url = reverse_lazy("v1:payment:subscription-success")
-
-    def test_endpoint(self):
-        assert self.url == "/api/v1/payment/subscriptions/success/"
-
-    def test_subscription_success_view(self, client):
-        response = client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data == {"message": "Subscription successful"}
-
-
-@pytest.mark.django_db
-class TestSubscriptionCancelView:
-    url = reverse_lazy("v1:payment:subscription-cancel")
-
-    def test_endpoint(self):
-        assert self.url == "/api/v1/payment/subscriptions/cancel/"
-
-    def test_subscription_cancel_view(self, client):
-        response = client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data == {"message": "Subscription canceled"}

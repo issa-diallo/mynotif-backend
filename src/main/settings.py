@@ -252,3 +252,6 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
 STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "")
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+
+# Frontend URL, used for the Stripe success/cancel redirect
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
