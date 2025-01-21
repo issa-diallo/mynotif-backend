@@ -11,6 +11,9 @@ jobs:
         with:
           python-version: 3.13
       - run: make virtualenv/test
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
       - run: make lint
       - run: make unittest
       - name: Upload coverage to Codecov
