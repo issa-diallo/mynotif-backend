@@ -164,6 +164,13 @@ variable "env_templated_site_name" {
   default = "MyNotif"
 }
 
+# Frontend URL
+variable "frontend_url" {
+  type        = string
+  description = "Frontend URL for Stripe redirects"
+  default     = "https://app.ordopro.fr"
+}
+
 ## Lambda configuration
 variable "lambda_python_runtime" {
   description = "AWS Lambda Python runtime version"
