@@ -61,3 +61,12 @@ data "aws_ssm_parameter" "notify_username" {
 data "aws_ssm_parameter" "notify_password" {
   name = "${var.app_name}-notify-password-${var.environment}"
 }
+
+# Stripe
+data "aws_ssm_parameter" "stripe_api_key" {
+  name = "${var.app_name}-stripe-api-key-${var.environment}"
+}
+
+data "aws_ssm_parameter" "stripe_webhook_secret" {
+  name = "${var.app_name}-stripe-webhook-secret-${var.environment}"
+}

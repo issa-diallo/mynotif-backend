@@ -51,6 +51,11 @@ resource "aws_apprunner_service" "backend" {
           # OneSignal
           ONESIGNAL_APP_ID  = data.aws_ssm_parameter.onesignal_api_id.value
           ONESIGNAL_API_KEY = data.aws_ssm_parameter.onesignal_api_key.value
+          # Stripe
+          STRIPE_API_KEY        = data.aws_ssm_parameter.stripe_api_key.value
+          STRIPE_WEBHOOK_SECRET = data.aws_ssm_parameter.stripe_webhook_secret.value
+          # Frontend URL
+          FRONTEND_URL = var.frontend_url
         }
       }
       image_repository_type = "ECR"
