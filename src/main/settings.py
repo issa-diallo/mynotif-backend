@@ -249,7 +249,6 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
     )
 
 # Stripe
-STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "")
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
