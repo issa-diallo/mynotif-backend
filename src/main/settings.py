@@ -254,3 +254,7 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
 # Frontend URL, used for the Stripe success/cancel redirect
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+
+# Maximum number of free patients and prescriptions
+FREE_PATIENT_LIMIT = 15
+FREE_PRESCRIPTION_LIMIT = 15
