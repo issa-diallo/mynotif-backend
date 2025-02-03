@@ -254,3 +254,10 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
 # Frontend URL, used for the Stripe success/cancel redirect
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+
+# Maximum number of free patients and prescriptions
+# these values need to be in sync until we implement the single source of truth
+# https://github.com/mynotif/mynotif-frontend/blob/3d1c858/src/hook/patientManagement.ts#L4
+# https://github.com/mynotif/mynotif-frontend/blob/3d1c858/src/hook/prescriptionManagement.ts#L4
+FREE_PATIENT_LIMIT = 15
+FREE_PRESCRIPTION_LIMIT = 15

@@ -1,7 +1,10 @@
+import contextlib
 from datetime import datetime, timedelta
 
 from django.contrib.auth.models import User
 from django.db import models
+
+from payment.models import Subscription
 
 
 def make_street_field():
@@ -51,6 +54,16 @@ class Nurse(models.Model):
 
     def __str__(self):
         return str(self.user)
+
+    def get_active_subscription(self):
+        """Returns the active subscription"""
+        """for the nurse's user if it exists, otherwise None."""
+        with contextlib.suppress(Subscription.DoesNotExist):
+            return Subscription.objects.get(user=self.user, active=True)
+
+    def has_active_subscription(self):
+        """Returns True if the nurse has an active subscription."""
+        return self.get_active_subscription() is not None
 
 
 class PrescriptionManager(models.Manager):

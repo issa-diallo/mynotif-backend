@@ -2,7 +2,32 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from nurse.models import Patient, Prescription
+from nurse.models import Nurse, Patient, Prescription
+from payment.models import Subscription
+
+
+@pytest.fixture
+def active_subscription(user):
+    return Subscription.objects.create(user=user, active=True)
+
+
+@pytest.fixture
+def inactive_subscription(user):
+    return Subscription.objects.create(user=user, active=False)
+
+
+# Fixture for creating a nurse instance.
+@pytest.fixture
+def nurse(user):
+    nurse_data = {
+        "user": user,
+        "phone": "0602015454",
+        "address": "3 place du cerdan",
+        "zip_code": "95400",
+        "city": "courdimanche",
+    }
+    nurse = Nurse.objects.create(**nurse_data)
+    yield nurse
 
 
 @pytest.fixture
@@ -107,3 +132,41 @@ class TestPrescriptionManager:
     def test_prescriptions_email_doctor(self, base_prescriptions):
         prescription = Prescription.objects.first()
         assert prescription.email_doctor == "dr.a@example.com"
+
+
+@pytest.mark.django_db
+class TestNurse:
+    def test_str(self, nurse, user):
+        """Test the __str__ method of the Nurse model."""
+        assert str(nurse) == str(user)
+
+    def test_get_active_subscription_with_active_subscription(
+        self, nurse, active_subscription
+    ):
+        """Test get_active_subscription with an active subscription."""
+        subscription = nurse.get_active_subscription()
+        assert subscription == active_subscription
+
+    def test_get_active_subscription_without_active_subscription(
+        self, nurse, inactive_subscription
+    ):
+        """Test get_active_subscription without an active subscription."""
+        subscription = nurse.get_active_subscription()
+        assert subscription is None
+
+    def test_has_active_subscription_with_active_subscription(
+        self, nurse, active_subscription
+    ):
+        """Test has_active_subscription with an active subscription."""
+        assert nurse.has_active_subscription() is True
+
+    def test_has_active_subscription_without_active_subscription(
+        self, nurse, inactive_subscription
+    ):
+        """Test has_active_subscription without an active subscription."""
+        assert nurse.has_active_subscription() is False
+
+    def test_no_subscriptions(self, nurse):
+        """Test get_active_subscription when no subscriptions exist."""
+        assert nurse.get_active_subscription() is None
+        assert nurse.has_active_subscription() is False
