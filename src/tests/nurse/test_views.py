@@ -6,6 +6,7 @@ from unittest.mock import patch
 import boto3
 import pytest
 import rest_framework
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -17,6 +18,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from nurse.models import Nurse, Patient, Prescription, UserOneSignalProfile
+from nurse.utils.constants import FREE_LIMIT_MESSAGE
+from payment.models import Subscription
 from tests.conftest import (
     EMAIL,
     EMAIL_HOST_USER,
@@ -248,6 +251,45 @@ class TestPatient:
         assert patient.ss_provider_code == ""
         assert patient.birthday is None
 
+    @override_settings(FREE_PATIENT_LIMIT=2)
+    def test_non_subscribed_user_cannot_exceed_patient_limit(self, user, client):
+        """
+        Ensure that a non-subscribed
+        user cannot create more patients than the allowed limit.
+        """
+        LIMIT = settings.FREE_PATIENT_LIMIT
+        assert Patient.objects.count() == 0
+        data = {
+            "firstname": "John",
+            "lastname": "Leen",
+        }
+        for _ in range(LIMIT):
+            response = client.post(self.url, data, format="json")
+            assert response.status_code == status.HTTP_201_CREATED
+        assert Patient.objects.count() == LIMIT
+        response = client.post(self.url, data, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.data == {"detail": FREE_LIMIT_MESSAGE}
+
+    @override_settings(FREE_PATIENT_LIMIT=2)
+    def test_subscribed_user_can_exceed_patient_limit(self, user, client):
+        """
+        Ensure that a subscribed user
+        can create more patient than the allowed limit.
+        """
+        LIMIT = settings.FREE_PATIENT_LIMIT
+        Subscription.objects.create(
+            user=user, stripe_subscription_id="session_id_example", active=True
+        )
+        data = {
+            "firstname": "John",
+            "lastname": "Leen",
+        }
+        for _ in range(LIMIT + 1):
+            response = client.post(self.url, data, format="json")
+            assert response.status_code == status.HTTP_201_CREATED
+        assert Patient.objects.count() == LIMIT + 1
+
     @freeze_time("2022-08-11")
     @override_settings(AWS_ACCESS_KEY_ID="testing")
     def test_patient_list(self, user, client):
@@ -451,6 +493,40 @@ class TestPrescription:
         assert prescription.end_date == date(2022, 7, 31)
         assert prescription.photo_prescription.name == ""
         assert prescription.patient.id == patient.id
+
+    @override_settings(FREE_PRESCRIPTION_LIMIT=2)
+    def test_non_subscribed_user_cannot_exceed_prescription_limit(self, client):
+        """
+        Ensure that a non-subscribed
+        user cannot create more prescription than the allowed limit.
+        """
+        LIMIT = settings.FREE_PRESCRIPTION_LIMIT
+        patient = Patient.objects.create(**patient_data)
+        data = {**self.data, **{"patient": patient.id}}
+        for _ in range(LIMIT):
+            response = client.post(self.url, data, format="json")
+            assert response.status_code == status.HTTP_201_CREATED
+        assert Prescription.objects.count() == LIMIT
+        response = client.post(self.url, data, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.data == {"detail": FREE_LIMIT_MESSAGE}
+
+    @override_settings(FREE_PRESCRIPTION_LIMIT=2)
+    def test_subscribed_user_can_exceed_prescription_limit(self, user, client):
+        """
+        Ensure that a subscribed user
+        can create more prescription than the allowed limit.
+        """
+        LIMIT = settings.FREE_PRESCRIPTION_LIMIT
+        Subscription.objects.create(
+            user=user, stripe_subscription_id="session_id_example", active=True
+        )
+        patient = Patient.objects.create(**patient_data)
+        data = {**self.data, **{"patient": patient.id}}
+        for _ in range(LIMIT + 1):
+            response = client.post(self.url, data, format="json")
+            assert response.status_code == status.HTTP_201_CREATED
+        assert Prescription.objects.count() == LIMIT + 1
 
     def test_create_prescription_no_patient(self, client):
         """A prescription should always be attached to a patient."""

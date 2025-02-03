@@ -20,6 +20,7 @@ from nurse.serializers import (
     UserSerializer,
     UserSerializerV2,
 )
+from nurse.utils.constants import FREE_LIMIT_MESSAGE
 from nurse.utils.email import send_mail_with_reply
 
 
@@ -125,7 +126,16 @@ class PatientViewSet(DynamicFieldsMixin, viewsets.ModelViewSet):
         return queryset
 
     def create(self, request):
+        """Prevents the creation of a patient"""
+        """if the free limit is reached without an active subscription."""
         nurse, _ = Nurse.objects.get_or_create(user=self.request.user)
+        patient_count = nurse.patients.count()
+        is_subscribed = nurse.has_active_subscription()
+        if not is_subscribed and patient_count >= settings.FREE_PATIENT_LIMIT:
+            return Response(
+                {"detail": FREE_LIMIT_MESSAGE},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         response = super().create(request)
         patient = Patient.objects.get(id=response.data["id"])
         patient.nurse_set.add(nurse)
@@ -142,6 +152,20 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
         nurse, _ = Nurse.objects.get_or_create(user=self.request.user)
         queryset = queryset.filter(patient__nurse=nurse)
         return queryset
+
+    def create(self, request, *args, **kwargs):
+        """Prevents the creation of a prescription"""
+        """if the free limit is reached without an active subscription."""
+        prescription_count = Prescription.objects.count()
+        nurse, _ = Nurse.objects.get_or_create(user=self.request.user)
+        is_subscribed = nurse.has_active_subscription()
+        if not is_subscribed and prescription_count >= settings.FREE_PRESCRIPTION_LIMIT:
+            return Response(
+                {"detail": FREE_LIMIT_MESSAGE},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return super().create(request, *args, **kwargs)
 
 
 class PrescriptionFileView(generics.UpdateAPIView):
